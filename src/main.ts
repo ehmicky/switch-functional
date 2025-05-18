@@ -210,7 +210,7 @@ const applyReturnValues = <
   OriginalInput extends Input,
 >(
   input: OriginalInput,
-  returnValues: AnyReturnValue<CustomReturnValue, OriginalInput>,
+  returnValues: AnyReturnValues<CustomReturnValue, OriginalInput>,
   {
     mapReturnValues,
   }: Options<CustomCondition, CustomReturnValue, OriginalInput>,
@@ -363,14 +363,14 @@ type ConditionFunction<OriginalInput extends Input> = (
 type VariadicReturnValues<CustomReturnValue, NewReturnValue> =
   CustomReturnValue[] extends never[]
     ? readonly [NewReturnValue]
-    : readonly NewReturnValue[]
+    : readonly CustomReturnValue[]
 
-type AnyReturnValue<
+type AnyReturnValues<
   CustomReturnValue,
   OriginalInput extends Input,
 > = CustomReturnValue[] extends never[]
-  ? readonly CustomReturnValue[]
-  : readonly ReturnValue<OriginalInput>[]
+  ? readonly [ReturnValue<OriginalInput>]
+  : readonly CustomReturnValue[]
 
 type ReturnValue<OriginalInput extends Input> =
   | string
