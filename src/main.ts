@@ -472,6 +472,8 @@ export interface Options<
   /**
    *
    */
+  // Known limitations of the types:
+  //  - The mapping function must have at least one parameter, even if unused
   readonly mapCondition?: (
     customCondition: CustomCondition,
   ) => Condition<OriginalInput>
@@ -479,6 +481,12 @@ export interface Options<
   /**
    *
    */
+  // Known limitations of the types:
+  //  - The mapping function must have at least one parameter, even if unused
+  //  - The value returned by `.default()` will have the same type as
+  //    `StrictReturnValue`. Without `mapReturnValues()`, it can have a stricter
+  //    type, e.g. the an union of the raw values passed to each `.case()` or
+  //    `.default()`
   readonly mapReturnValues?: (
     ...customReturnValues: CustomReturnValues
   ) => StrictReturnValue
