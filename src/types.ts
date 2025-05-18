@@ -1,7 +1,17 @@
+/**
+ * Keeps track of whether a `.case()` has previously matched.
+ */
 export type Resolved = boolean
 
+/**
+ * Argument passed to `switchFunctional(input)`
+ */
 export type Input = unknown
 
+/**
+ * Argument passed to `.case(conditions)`
+ * Can be an array or not. Can use `options.mapCondition()` or not.
+ */
 export type AnyConditions<
   CustomCondition,
   OriginalInput extends Input,
@@ -9,6 +19,10 @@ export type AnyConditions<
   ? Conditions<OriginalInput>
   : CustomConditions<CustomCondition>
 
+/**
+ * Argument passed to `.case(conditions)`
+ * Must not be an array. Can use `options.mapCondition()` or not.
+ */
 export type AnyCondition<
   CustomCondition,
   OriginalInput extends Input,
@@ -16,10 +30,18 @@ export type AnyCondition<
   ? Condition<OriginalInput>
   : CustomCondition
 
+/**
+ * Argument passed to `.case(conditions)`
+ * Can be an array or not. Must use `options.mapCondition()`.
+ */
 type CustomConditions<CustomCondition> =
   | CustomCondition
   | readonly CustomCondition[]
 
+/**
+ * Argument passed to `.case(conditions)`
+ * Can be an array or not. Must not use `options.mapCondition()`.
+ */
 type Conditions<OriginalInput extends Input> =
   | Condition<OriginalInput>
   | readonly Condition<OriginalInput>[]
@@ -46,10 +68,17 @@ export type Condition<OriginalInput extends Input = Input> =
   | { readonly [key: PropertyKey]: unknown }
   | ConditionFunction<OriginalInput>
 
+/**
+ * Function passed to `.case((input) => condition)`
+ */
 type ConditionFunction<OriginalInput extends Input> = (
   input: OriginalInput,
 ) => boolean
 
+/**
+ * Arguments passed to `.case(..., ...returnValues)`
+ * Can be variadic. Can use `options.mapReturnValues()` or not.
+ */
 export type AnyReturnValues<
   CustomReturnValues extends readonly unknown[],
   OriginalInput extends Input,
@@ -58,6 +87,10 @@ export type AnyReturnValues<
   ? readonly [NewReturnValue]
   : CustomReturnValues
 
+/**
+ * Arguments passed to `.case(..., ...returnValues)`
+ * After applying `options.mapReturnValues()` if any.
+ */
 export type ReturnValue<OriginalInput extends Input> =
   | string
   | number
@@ -70,16 +103,33 @@ export type ReturnValue<OriginalInput extends Input> =
   | { readonly [key: PropertyKey]: unknown }
   | ReturnValueFunction<OriginalInput>
 
+/**
+ * Arguments passed to `.case(..., ...returnValues)`
+ * After applying `options.mapReturnValues()` if any.
+ * After calling the function if any was used: `.case(..., () => returnValue)`
+ */
 export type FinalReturnValue = unknown
 
+/**
+ * Function passed to  `.case(..., (...) => returnValue)`
+ */
 type ReturnValueFunction<OriginalInput extends Input> = (
   input: OriginalInput,
 ) => unknown
 
+/**
+ * Get the return values, as passed to `.case(..., ...returnValues)`
+ * After applying `options.mapReturnValues()` if any.
+ * After calling the function if any was used: `.case(..., () => returnValue)`
+ */
 export type GetFinalValue<NewReturnValue, StrictReturnValue> = ReturnOrValue<
   NewReturnValue[] extends never[] ? StrictReturnValue : NewReturnValue
 >
 
+/**
+ * Get the return type of the function passed to
+ * `.case(..., (...) => returnValue)`, if one was used
+ */
 type ReturnOrValue<NewReturnValue> = NewReturnValue extends (
   ...args: readonly never[]
 ) => unknown
@@ -87,7 +137,7 @@ type ReturnOrValue<NewReturnValue> = NewReturnValue extends (
   : NewReturnValue
 
 /**
- *
+ * Options passed to `switchFunctional(input, options)`
  */
 export interface Options<
   CustomCondition = unknown,
