@@ -19,18 +19,18 @@ export const addDefault =
     StrictReturnValue extends ReturnValue<OriginalInput>,
     FinalReturnValues extends FinalReturnValue,
   >({
-    options,
     resolved,
+    options,
     input,
     finalValue,
   }: {
+    resolved: boolean
     options: Options<
       CustomCondition,
       CustomReturnValues,
       OriginalInput,
       StrictReturnValue
     >
-    resolved: boolean
     input: OriginalInput
     finalValue?: FinalReturnValues | undefined
   }) =>
