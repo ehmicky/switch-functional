@@ -80,7 +80,7 @@ const addCase =
   ) =>
   <NewReturnValue extends ReturnValue<OriginalInput>>(
     conditions: AnyConditions<CustomCondition, OriginalInput>,
-    caseReturnValue: NewReturnValue,
+    ...caseReturnValues: VariadicReturnValues<CustomReturnValue, NewReturnValue>
   ): Switch<
     FinalReturnValues | ValueOrReturn<NewReturnValue>,
     CustomCondition,
@@ -94,7 +94,7 @@ const addCase =
           CustomReturnValue,
           OriginalInput
         >)
-      : (chain(true, applyReturnValue(input, caseReturnValue))(
+      : (chain(true, applyReturnValues(input, caseReturnValues, options))(
           input,
           options,
         ) as Switch<
@@ -118,13 +118,17 @@ const useDefault =
     finalValue?: FinalReturnValues,
   ) =>
   <NewReturnValue extends ReturnValue<OriginalInput>>(
-    defaultReturnValue: NewReturnValue,
+    ...defaultReturnValues: VariadicReturnValues<
+      CustomReturnValue,
+      NewReturnValue
+    >
   ) =>
     resolved
       ? finalValue!
-      : (applyReturnValue(
+      : (applyReturnValues(
           input,
-          defaultReturnValue,
+          defaultReturnValues,
+          options,
         ) as ValueOrReturn<NewReturnValue>)
 
 const matchesConditions = <
@@ -200,10 +204,23 @@ const deepIncludes = (input: Input, subset: unknown): boolean => {
 const isObject = (input: Input): input is { [name: PropertyKey]: unknown } =>
   typeof input === 'object' && input !== null
 
-const applyReturnValue = <OriginalInput extends Input>(
+const applyReturnValues = <
+  CustomCondition,
+  CustomReturnValue,
+  OriginalInput extends Input,
+>(
   input: OriginalInput,
-  returnValue: ReturnValue<OriginalInput>,
-) => (typeof returnValue === 'function' ? returnValue(input) : returnValue)
+  returnValues: AnyReturnValue<CustomReturnValue, OriginalInput>,
+  {
+    mapReturnValues,
+  }: Options<CustomCondition, CustomReturnValue, OriginalInput>,
+) => {
+  const returnValue =
+    mapReturnValues === undefined
+      ? (returnValues[0] as ReturnValue<OriginalInput>)
+      : mapReturnValues(returnValues as CustomReturnValue[])
+  return typeof returnValue === 'function' ? returnValue(input) : returnValue
+}
 
 /**
  * Functional switch statement. This must be chained with
@@ -342,6 +359,18 @@ export type Condition<OriginalInput extends Input = Input> =
 type ConditionFunction<OriginalInput extends Input> = (
   input: OriginalInput,
 ) => boolean
+
+type VariadicReturnValues<CustomReturnValue, NewReturnValue> =
+  CustomReturnValue[] extends never[]
+    ? readonly [NewReturnValue]
+    : readonly NewReturnValue[]
+
+type AnyReturnValue<
+  CustomReturnValue,
+  OriginalInput extends Input,
+> = CustomReturnValue[] extends never[]
+  ? readonly CustomReturnValue[]
+  : readonly ReturnValue<OriginalInput>[]
 
 type ReturnValue<OriginalInput extends Input> =
   | string

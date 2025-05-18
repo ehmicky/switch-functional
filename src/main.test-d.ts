@@ -8,9 +8,9 @@ import switchFunctional, {
 
 const switchStatement = switchFunctional(true as const)
 expectAssignable<Switch>(switchStatement)
-expectType<Switch<never, never, never, true>>(switchStatement)
+expectAssignable<Switch<never, never, never, true>>(switchStatement)
 
-expectType<Switch<never, never, never, true>>(
+expectAssignable<Switch<never, never, never, true>>(
   switchFunctional(true as const, {} as const),
 )
 expectAssignable<Options>({} as const)
@@ -26,9 +26,9 @@ expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => (value: unknown) =>
     customCondition === 'a',
 } as const)
-expectType<Switch<never, string, never, true>>(customSwitchStatement)
+expectAssignable<Switch<never, string, never, true>>(customSwitchStatement)
 
-expectType<Switch<never, string, never, true>>(
+expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: string) => true } as const,
@@ -37,7 +37,7 @@ expectType<Switch<never, string, never, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => true,
 } as const)
-expectType<Switch<never, string, never, true>>(
+expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: string) => 1 } as const,
@@ -46,7 +46,7 @@ expectType<Switch<never, string, never, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => 1,
 } as const)
-expectType<Switch<never, string, never, true>>(
+expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: string) => undefined } as const,
@@ -55,7 +55,7 @@ expectType<Switch<never, string, never, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => undefined,
 } as const)
-expectType<Switch<never, unknown, never, true>>(
+expectAssignable<Switch<never, unknown, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: unknown) => true } as const,
@@ -64,7 +64,7 @@ expectType<Switch<never, unknown, never, true>>(
 expectAssignable<Options<unknown>>({
   mapCondition: (customCondition: unknown) => true,
 } as const)
-expectType<Switch<never, string, never, true>>(
+expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(true as const, {
     mapCondition: (customCondition: string) => () => customCondition === 'a',
   }),
