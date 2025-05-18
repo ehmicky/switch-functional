@@ -101,3 +101,10 @@ switchStatement.other()
 
 expectType<1>(switchStatement.default(1 as const))
 expectType<1 | 2>(switchStatement.case(true, 2 as const).default(1 as const))
+
+expectType<Switch<1>>(switchStatement.case(true, 1 as const))
+expectType<Switch<1 | 2>>(
+  switchStatement.case(true, 1 as const).case(true, 2 as const),
+)
+
+expectAssignable<Switch<1 | 2>>(switchStatement.case(true, 1 as const))

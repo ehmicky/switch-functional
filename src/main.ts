@@ -2,10 +2,20 @@
 const chain =
   <AddedEffects extends Effect>(resolved: Resolved) =>
   (value: Value) => ({
+    /**
+     *
+     */
     case: addCase<AddedEffects>({ resolved, value }),
+
+    /**
+     *
+     */
     default: useDefault<AddedEffects>({ resolved, value }),
   })
 
+/**
+ * Return value of `switchFunctional()` and `switchFunctional().case()`
+ */
 export interface Switch<AddedEffects extends Effect = never> {
   case: <NewEffect extends Effect>(
     conditions: Conditions,
