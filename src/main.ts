@@ -1,17 +1,23 @@
+/* eslint-disable max-lines */
 // Functional `switch` statement
 const chain =
   <FinalReturnValues extends FinalReturnValue = never>(
     resolved: Resolved,
     finalValue?: FinalReturnValues,
   ) =>
-  <OriginalInput extends Input>(input: OriginalInput) => ({
+  <OriginalInput extends Input, CustomCondition = never>(
+    input: OriginalInput,
+    options: Options<CustomCondition, OriginalInput> = {},
+  ) => ({
     /**
      * If the `input` matches the `conditions`, the final return value will be
      * `caseReturnValue`.
      *
-     * `caseReturnValue` can optionally be a function taking the `input` as argument.
+     * `caseReturnValue` can optionally be a function taking the `input` as
+     * argument.
      */
-    case: addCase<OriginalInput, FinalReturnValues>(
+    case: addCase<CustomCondition, OriginalInput, FinalReturnValues>(
+      options,
       resolved,
       input,
       finalValue,
@@ -24,7 +30,8 @@ const chain =
      * `defaultReturnValue` can optionally be a function taking the `input` as
      * argument.
      */
-    default: useDefault<OriginalInput, FinalReturnValues>(
+    default: useDefault<CustomCondition, OriginalInput, FinalReturnValues>(
+      options,
       resolved,
       input,
       finalValue,
@@ -36,12 +43,17 @@ const chain =
  */
 export interface Switch<
   FinalReturnValues extends FinalReturnValue = never,
+  CustomCondition = never,
   OriginalInput extends Input = Input,
 > {
   case: <NewReturnValue extends ReturnValue<OriginalInput>>(
-    conditions: Conditions<OriginalInput>,
+    conditions: AnyConditions<CustomCondition, OriginalInput>,
     caseReturnValue: NewReturnValue,
-  ) => Switch<FinalReturnValues | ValueOrReturn<NewReturnValue>, OriginalInput>
+  ) => Switch<
+    FinalReturnValues | ValueOrReturn<NewReturnValue>,
+    CustomCondition,
+    OriginalInput
+  >
   default: <NewReturnValue extends ReturnValue<OriginalInput>>(
     defaultReturnValue: NewReturnValue,
   ) => FinalReturnValues | ValueOrReturn<NewReturnValue>
@@ -49,28 +61,47 @@ export interface Switch<
 
 // `switchFunctional(input)[.case(...)].case(conditions, returnValue)`
 const addCase =
-  <OriginalInput extends Input, FinalReturnValues extends FinalReturnValue>(
+  <
+    CustomCondition,
+    OriginalInput extends Input,
+    FinalReturnValues extends FinalReturnValue,
+  >(
+    options: Options<CustomCondition, OriginalInput>,
     resolved: boolean,
     input: OriginalInput,
     finalValue?: FinalReturnValues,
   ) =>
   <NewReturnValue extends ReturnValue<OriginalInput>>(
-    conditions: Conditions<OriginalInput>,
+    conditions: AnyConditions<CustomCondition, OriginalInput>,
     caseReturnValue: NewReturnValue,
-  ): Switch<FinalReturnValues | ValueOrReturn<NewReturnValue>, OriginalInput> =>
-    resolved || !matchesConditions(input, conditions)
-      ? (chain(resolved, finalValue)(input) as Switch<
+  ): Switch<
+    FinalReturnValues | ValueOrReturn<NewReturnValue>,
+    CustomCondition,
+    OriginalInput
+  > =>
+    resolved || !matchesConditions(input, conditions, options)
+      ? (chain(resolved, finalValue)(input, options) as Switch<
           FinalReturnValues,
+          CustomCondition,
           OriginalInput
         >)
-      : (chain(true, applyReturnValue(input, caseReturnValue))(input) as Switch<
+      : (chain(true, applyReturnValue(input, caseReturnValue))(
+          input,
+          options,
+        ) as Switch<
           ValueOrReturn<NewReturnValue>,
+          CustomCondition,
           OriginalInput
         >)
 
 // `switchFunctional(input)[.case()...].default(returnValue)`
 const useDefault =
-  <OriginalInput extends Input, FinalReturnValues extends FinalReturnValue>(
+  <
+    CustomCondition,
+    OriginalInput extends Input,
+    FinalReturnValues extends FinalReturnValue,
+  >(
+    options: Options<CustomCondition, OriginalInput>,
     resolved: boolean,
     input: OriginalInput,
     finalValue?: FinalReturnValues,
@@ -85,29 +116,44 @@ const useDefault =
           defaultReturnValue,
         ) as ValueOrReturn<NewReturnValue>)
 
-const matchesConditions = <OriginalInput extends Input>(
+const matchesConditions = <CustomCondition, OriginalInput extends Input>(
   input: OriginalInput,
-  conditions: Conditions<OriginalInput>,
+  conditions: AnyConditions<CustomCondition, OriginalInput>,
+  options: Options<CustomCondition, OriginalInput>,
 ) =>
   Array.isArray(conditions)
-    ? (conditions as Condition[]).some((condition) =>
-        matchesCondition(input, condition),
+    ? conditions.some((condition) =>
+        matchesCondition(
+          input,
+          condition as AnyCondition<CustomCondition, OriginalInput>,
+          options,
+        ),
       )
-    : matchesCondition(input, conditions)
+    : matchesCondition(
+        input,
+        conditions as AnyCondition<CustomCondition, OriginalInput>,
+        options,
+      )
 
-const matchesCondition = <OriginalInput extends Input>(
+const matchesCondition = <CustomCondition, OriginalInput extends Input>(
   input: OriginalInput,
-  condition: Condition<OriginalInput>,
+  condition: AnyCondition<CustomCondition, OriginalInput>,
+  { mapCondition }: Options<CustomCondition, OriginalInput>,
 ) => {
-  if (typeof condition === 'function') {
-    return condition(input)
+  const normalizedCondition =
+    mapCondition === undefined
+      ? (condition as Condition<OriginalInput>)
+      : mapCondition(condition as CustomCondition)
+
+  if (typeof normalizedCondition === 'function') {
+    return normalizedCondition(input)
   }
 
-  if (typeof condition === 'boolean') {
-    return condition
+  if (typeof normalizedCondition === 'boolean') {
+    return normalizedCondition
   }
 
-  return deepIncludes(input, condition)
+  return deepIncludes(input, normalizedCondition)
 }
 
 // Check for deep equality. For objects (not arrays), check if deep superset.
@@ -230,9 +276,27 @@ type Resolved = boolean
 
 type Input = unknown
 
-type Conditions<PassedInput extends Input = Input> =
-  | Condition<PassedInput>
-  | readonly Condition<PassedInput>[]
+type AnyConditions<
+  CustomCondition,
+  OriginalInput extends Input,
+> = CustomCondition[] extends never[]
+  ? Conditions<OriginalInput>
+  : CustomConditions<CustomCondition>
+
+type AnyCondition<
+  CustomCondition,
+  OriginalInput extends Input,
+> = CustomCondition[] extends never[]
+  ? Condition<OriginalInput>
+  : CustomCondition
+
+type CustomConditions<CustomCondition> =
+  | CustomCondition
+  | readonly CustomCondition[]
+
+type Conditions<OriginalInput extends Input> =
+  | Condition<OriginalInput>
+  | readonly Condition<OriginalInput>[]
 
 /**
  * The `conditions` can be:
@@ -283,3 +347,18 @@ type ValueOrReturn<NewReturnValue> = NewReturnValue extends (
 ) => unknown
   ? ReturnType<NewReturnValue>
   : NewReturnValue
+
+/**
+ *
+ */
+export interface Options<
+  CustomCondition = unknown,
+  OriginalInput extends Input = Input,
+> {
+  /**
+   *
+   */
+  readonly mapCondition?: (
+    customCondition: CustomCondition,
+  ) => Condition<OriginalInput>
+}
