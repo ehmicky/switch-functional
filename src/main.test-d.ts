@@ -757,3 +757,14 @@ expectType<undefined>(customSwitchStatement.default(undefined))
 expectType<undefined>(customSwitchStatement.default(() => undefined))
 expectType<0 | undefined>(customCaseStatement.default(undefined))
 expectType<0 | undefined>(customCaseStatement.default(() => undefined))
+
+const fullSwitch = switchFunctional('input' as const, {
+  mapCondition: (condition: 0) => String(condition) === '0',
+  mapReturnValues: (one: 1, two: 2) => (one + two) as 3,
+})
+expectType<Switch<never, 0, readonly [1, 2], 'input', 3>>(fullSwitch)
+const caseSwitch = fullSwitch.case(0, 1, 2)
+expectType<Switch<3, 0, readonly [1, 2], 'input', 3>>(caseSwitch)
+const secondCaseSwitch = caseSwitch.case(0, 1, 2)
+expectType<Switch<3, 0, readonly [1, 2], 'input', 3>>(secondCaseSwitch)
+expectType<3>(caseSwitch.default(1, 2))
