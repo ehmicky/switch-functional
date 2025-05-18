@@ -6,7 +6,15 @@
 [![Mastodon](https://img.shields.io/badge/-Mastodon-808080.svg?logo=mastodon&colorA=404040&logoColor=9590F9)](https://fosstodon.org/@ehmicky)
 [![Medium](https://img.shields.io/badge/-Medium-808080.svg?logo=medium&colorA=404040)](https://medium.com/@ehmicky)
 
-Functional switch statement. Strictly typed.
+Functional switch statement.
+
+# Features
+
+- [Deep equality testing](#testing-properties)
+- Advanced [testing](#testing-input) and
+  [manipulation](#returning-dynamic-values)
+- Add your own domain-specific [conditions](#custom-conditions) and transforms
+- [Strictly typed](/src/main.ts)
 
 # Examples
 
@@ -96,6 +104,32 @@ const getUserType = (user) =>
     .default((user) => user.genericType)
 ```
 
+## Custom conditions
+
+```js
+import { Admin, Developer } from './user-classes.js'
+
+// Augment the `.case()` syntax to support domain-specific conditions
+// This allows conditions to be user classes
+const mapCondition = (condition) =>
+  USER_CLASSES.has(condition) ? (user) => user instanceof condition : condition
+
+const USER_CLASSES = new Set([Admin, Developer])
+
+export const customSwitch = (user) => switchFunctional(user, { mapCondition })
+```
+
+```js
+import { customSwitch } from './custom-switch.js'
+import { Admin, Developer } from './user-classes.js'
+
+const getUserType = (user) =>
+  customSwitch(user)
+    .case(Developer, 'developer')
+    .case(Admin, 'admin')
+    .default('unknown')
+```
+
 # Install
 
 ```bash
@@ -113,9 +147,10 @@ not CommonJS.
 
 # API
 
-## switchFunctional(input)
+## switchFunctional(input, options?)
 
 `input`: `unknown`\
+`options?`: [`Options`](#options)\
 _Return value_: [`Switch`](#switchcaseconditions-casereturnvalue)
 
 Functional switch statement. This must be chained with
@@ -154,6 +189,23 @@ The `conditions` can be:
 - A filtering function taking the `input` as argument and returning a boolean
 - A boolean
 - An array of the above types, checking if _any_ condition in the array matches
+
+## Options
+
+_Type_: `object`
+
+### mapCondition
+
+_Type_: `(unknown) => Condition`
+
+Function mapping each value passed to
+[`.case(value)`](#switchcaseconditions-casereturnvalue) or `.case(value[])`.
+
+Can return any value [condition](#conditions), including a function taking the
+`input` as argument. Cannot return an array of conditions.
+
+This allows augmenting the syntax of `.case()` to support domain-specific,
+[custom conditions](#custom-conditions).
 
 # Related projects
 

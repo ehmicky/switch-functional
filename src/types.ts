@@ -147,7 +147,38 @@ export interface Options<
     ReturnValue<OriginalInput> = ReturnValue<OriginalInput>,
 > {
   /**
+   * Function mapping each value passed to `.case(value)` or `.case(value[])`.
    *
+   * Can return any value condition, including a function taking the `input` as
+   * argument. Cannot return an array of conditions.
+   *
+   * This allows augmenting the syntax of `.case()` to support domain-specific,
+   * custom conditions.
+   *
+   * @example
+   * ```js
+   * import { Admin, Developer } from './user-classes.js'
+   *
+   * // Augment the `.case()` syntax to support domain-specific conditions
+   * // This allows conditions to be user classes
+   * const mapCondition = (condition) =>
+   *   USER_CLASSES.has(condition) ? (user) => user instanceof condition : condition
+   *
+   * const USER_CLASSES = new Set([Admin, Developer])
+   *
+   * export const customSwitch = (user) => switchFunctional(user, { mapCondition })
+   * ```
+   *
+   * ```js
+   * import { customSwitch } from './custom-switch.js'
+   * import { Admin, Developer } from './user-classes.js'
+   *
+   * const getUserType = (user) =>
+   *   customSwitch(user)
+   *     .case(Developer, 'developer')
+   *     .case(Admin, 'admin')
+   *     .default('unknown')
+   * ```
    */
   // Known limitations of the types:
   //  - The mapping function must have at least one parameter, even if unused
