@@ -134,6 +134,13 @@ each(
     [[], [[]]],
     [[0], [[0]]],
     [[0, 1], [[0, 1]]],
+    [[{ one: 0 }], [[{ one: 0 }]]],
+    [[[0]], [[[0]]]],
+    [{}, {}],
+    [{ one: 1 }, {}],
+    [{ one: 1 }, { one: 1 }],
+    [{ one: { two: 1 } }, { one: { two: 1 } }],
+    [{ one: [1] }, { one: [1] }],
   ] as const,
   ({ title }, [input, condition]) => {
     test(`Can match equality conditions | ${title}`, (t) => {
@@ -164,6 +171,12 @@ each(
     [[0], [[0, 1]]],
     [[0, 1], [[0]]],
     [[0], [[1]]],
+    [[{ one: 0 }], [[{ one: 1 }]]],
+    [[[0]], [[[1]]]],
+    [{}, { one: 1 }],
+    [{ one: 1 }, { one: 2 }],
+    [{ one: { two: 1 } }, { one: { two: 2 } }],
+    [{ one: [1] }, { one: [2] }],
   ] as const,
   ({ title }, [input, condition]) => {
     test(`Can not match equality conditions | ${title}`, (t) => {
