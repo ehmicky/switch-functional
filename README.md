@@ -22,7 +22,7 @@ const getUserType = (user) =>
     .default('unknown')
 ```
 
-Is the same as:
+This is equivalent to:
 
 ```js
 const getUserType = (user) => {
@@ -43,13 +43,14 @@ const getUserType = (user) => {
 ```js
 const getUserType = (user) =>
   switchFunctional(user)
+    // Checks `user.hasDevProjects === true`
     .case({ hasDevProjects: true }, 'developer')
-    // Check for deep properties
+    // Checks for deep properties
     .case({ devProjectsCount: 0, permissions: { admin: true } }, 'admin')
     .default('unknown')
 ```
 
-## Dynamic return
+## Dynamic return value
 
 <!-- eslint-disable no-shadow -->
 
@@ -80,11 +81,11 @@ not CommonJS.
 
 ## switchFunctional(input)
 
-`input` `unknown`\
+`input`: `unknown`\
 _Return value_: [`Switch`](#switchcaseconditions-casereturnvalue)
 
 Functional switch statement. This must be chained with
-[`.case()`](#switchcaseconditions-casereturnvalue) and end with
+[`.case()`](#switchcaseconditions-casereturnvalue) statements and end with
 [`.default()`](#switchdefaultdefaultreturnvalue).
 
 ## Switch.case(conditions, caseReturnValue)
@@ -113,6 +114,8 @@ argument.
 
 The `conditions` can be:
 
+- Any value, checked for equality (using
+  [`Object.is()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is))
 - An object containing of subset of properties
 - A filtering function taking the `input` as argument and returning a boolean
 - A boolean
