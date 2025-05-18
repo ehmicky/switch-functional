@@ -157,6 +157,9 @@ The `conditions` can be:
 
 # Related projects
 
+- [`modern-errors-switch`](https://github.com/ehmicky/modern-errors-switch):
+  Execute class-specific logic
+
 # Support
 
 For any question, _don't hesitate_ to [submit an issue on GitHub](../../issues).
