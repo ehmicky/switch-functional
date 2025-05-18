@@ -8,13 +8,13 @@ const chain =
   <
     OriginalInput extends Input,
     CustomCondition = never,
-    CustomReturnValue = never,
+    CustomReturnValues extends unknown[] = never,
     StrictReturnValue extends ReturnValue<OriginalInput> = never,
   >(
     input: OriginalInput,
     options: Options<
       CustomCondition,
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       StrictReturnValue
     > = {},
@@ -28,7 +28,7 @@ const chain =
      */
     case: addCase<
       CustomCondition,
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       StrictReturnValue,
       FinalReturnValues
@@ -43,7 +43,7 @@ const chain =
      */
     default: useDefault<
       CustomCondition,
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       StrictReturnValue,
       FinalReturnValues
@@ -56,7 +56,7 @@ const chain =
 export interface Switch<
   FinalReturnValues extends FinalReturnValue = never,
   CustomCondition = never,
-  CustomReturnValue = never,
+  CustomReturnValues extends unknown[] = never,
   OriginalInput extends Input = Input,
   StrictReturnValue extends
     ReturnValue<OriginalInput> = ReturnValue<OriginalInput>,
@@ -64,20 +64,20 @@ export interface Switch<
   case: <NewReturnValue extends ReturnValue<OriginalInput> = never>(
     conditions: AnyConditions<CustomCondition, OriginalInput>,
     ...caseReturnValues: AnyReturnValues<
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       NewReturnValue
     >
   ) => Switch<
     FinalReturnValues | GetFinalValue<NewReturnValue, StrictReturnValue>,
     CustomCondition,
-    CustomReturnValue,
+    CustomReturnValues,
     OriginalInput,
     StrictReturnValue
   >
   default: <NewReturnValue extends ReturnValue<OriginalInput> = never>(
     ...defaultReturnValues: AnyReturnValues<
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       NewReturnValue
     >
@@ -88,14 +88,14 @@ export interface Switch<
 const addCase =
   <
     CustomCondition,
-    CustomReturnValue,
+    CustomReturnValues extends unknown[],
     OriginalInput extends Input,
     StrictReturnValue extends ReturnValue<OriginalInput>,
     FinalReturnValues extends FinalReturnValue,
   >(
     options: Options<
       CustomCondition,
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       StrictReturnValue
     >,
@@ -106,14 +106,14 @@ const addCase =
   <NewReturnValue extends ReturnValue<OriginalInput> = never>(
     conditions: AnyConditions<CustomCondition, OriginalInput>,
     ...caseReturnValues: AnyReturnValues<
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       NewReturnValue
     >
   ): Switch<
     FinalReturnValues | GetFinalValue<NewReturnValue, StrictReturnValue>,
     CustomCondition,
-    CustomReturnValue,
+    CustomReturnValues,
     OriginalInput,
     StrictReturnValue
   > =>
@@ -121,7 +121,7 @@ const addCase =
       ? (chain(resolved, finalValue)(input, options) as Switch<
           FinalReturnValues,
           CustomCondition,
-          CustomReturnValue,
+          CustomReturnValues,
           OriginalInput,
           StrictReturnValue
         >)
@@ -131,7 +131,7 @@ const addCase =
         ) as Switch<
           GetFinalValue<NewReturnValue, StrictReturnValue>,
           CustomCondition,
-          CustomReturnValue,
+          CustomReturnValues,
           OriginalInput,
           StrictReturnValue
         >)
@@ -140,14 +140,14 @@ const addCase =
 const useDefault =
   <
     CustomCondition,
-    CustomReturnValue,
+    CustomReturnValues extends unknown[],
     OriginalInput extends Input,
     StrictReturnValue extends ReturnValue<OriginalInput>,
     FinalReturnValues extends FinalReturnValue,
   >(
     options: Options<
       CustomCondition,
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       StrictReturnValue
     >,
@@ -157,7 +157,7 @@ const useDefault =
   ) =>
   <NewReturnValue extends ReturnValue<OriginalInput> = never>(
     ...defaultReturnValues: AnyReturnValues<
-      CustomReturnValue,
+      CustomReturnValues,
       OriginalInput,
       NewReturnValue
     >
@@ -172,7 +172,7 @@ const useDefault =
 
 const matchesConditions = <
   CustomCondition,
-  CustomReturnValue,
+  CustomReturnValues extends unknown[],
   OriginalInput extends Input,
   StrictReturnValue extends ReturnValue<OriginalInput>,
 >(
@@ -180,7 +180,7 @@ const matchesConditions = <
   conditions: AnyConditions<CustomCondition, OriginalInput>,
   options: Options<
     CustomCondition,
-    CustomReturnValue,
+    CustomReturnValues,
     OriginalInput,
     StrictReturnValue
   >,
@@ -201,7 +201,7 @@ const matchesConditions = <
 
 const matchesCondition = <
   CustomCondition,
-  CustomReturnValue,
+  CustomReturnValues extends unknown[],
   OriginalInput extends Input,
   StrictReturnValue extends ReturnValue<OriginalInput>,
 >(
@@ -211,7 +211,7 @@ const matchesCondition = <
     mapCondition,
   }: Options<
     CustomCondition,
-    CustomReturnValue,
+    CustomReturnValues,
     OriginalInput,
     StrictReturnValue
   >,
@@ -259,13 +259,13 @@ const isObject = (input: Input): input is { [name: PropertyKey]: unknown } =>
 
 const applyReturnValues = <
   CustomCondition,
-  CustomReturnValue,
+  CustomReturnValues extends unknown[],
   OriginalInput extends Input,
   StrictReturnValue extends ReturnValue<OriginalInput>,
 >(
   input: OriginalInput,
   returnValues: AnyReturnValues<
-    CustomReturnValue,
+    CustomReturnValues,
     OriginalInput,
     ReturnValue<OriginalInput>
   >,
@@ -273,7 +273,7 @@ const applyReturnValues = <
     mapReturnValues,
   }: Options<
     CustomCondition,
-    CustomReturnValue,
+    CustomReturnValues,
     OriginalInput,
     StrictReturnValue
   >,
@@ -281,7 +281,7 @@ const applyReturnValues = <
   const returnValue =
     mapReturnValues === undefined
       ? (returnValues[0] as ReturnValue<OriginalInput>)
-      : mapReturnValues(...(returnValues as readonly CustomReturnValue[]))
+      : mapReturnValues(...(returnValues as CustomReturnValues))
   return typeof returnValue === 'function' ? returnValue(input) : returnValue
 }
 
@@ -424,12 +424,12 @@ type ConditionFunction<OriginalInput extends Input> = (
 ) => boolean
 
 type AnyReturnValues<
-  CustomReturnValue,
+  CustomReturnValues extends unknown[],
   OriginalInput extends Input,
   NewReturnValue extends ReturnValue<OriginalInput>,
-> = CustomReturnValue[] extends never[]
+> = CustomReturnValues[] extends never[]
   ? readonly [NewReturnValue]
-  : readonly CustomReturnValue[]
+  : CustomReturnValues
 
 type ReturnValue<OriginalInput extends Input> =
   | string
@@ -464,7 +464,7 @@ type ReturnOrValue<NewReturnValue> = NewReturnValue extends (
  */
 export interface Options<
   CustomCondition = unknown,
-  CustomReturnValue = unknown,
+  CustomReturnValues extends unknown[] = unknown[],
   OriginalInput extends Input = Input,
   StrictReturnValue extends
     ReturnValue<OriginalInput> = ReturnValue<OriginalInput>,
@@ -480,6 +480,6 @@ export interface Options<
    *
    */
   readonly mapReturnValues?: (
-    ...customReturnValues: readonly CustomReturnValue[]
+    ...customReturnValues: CustomReturnValues
   ) => StrictReturnValue
 }
