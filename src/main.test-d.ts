@@ -274,8 +274,28 @@ expectType<Switch<0, never, never, true>>(caseStatement)
 const customCaseStatement = customSwitchStatement.case('a', 0)
 expectType<Switch<0, string, never, true>>(customCaseStatement)
 
+const otherCaseStatement = otherSwitchStatement.case(false, 'b' as const)
+expectType<
+  Switch<
+    boolean,
+    never,
+    [one: string, two?: boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(otherCaseStatement)
+
 expectType<Switch<0 | 1, never, never, true>>(caseStatement.case(true, 1))
 expectType<Switch<0 | 1, string, never, true>>(customCaseStatement.case('a', 1))
+expectType<
+  Switch<
+    boolean,
+    never,
+    [one: string, two?: boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(otherCaseStatement.case(false, 'c' as const))
 
 switchStatement.case(0, true)
 switchStatement.case(0n, true)
@@ -331,6 +351,38 @@ customSwitchStatement.case(['a', 'b'], true)
 customCaseStatement.case('a', true)
 customCaseStatement.case(['a', 'b'], true)
 
+otherSwitchStatement.case(0, 'a')
+otherSwitchStatement.case(0n, 'a')
+otherSwitchStatement.case(true, 'a')
+otherSwitchStatement.case(null, 'a')
+otherSwitchStatement.case(undefined, 'a')
+otherSwitchStatement.case('', 'a')
+otherSwitchStatement.case(Symbol(''), 'a')
+otherSwitchStatement.case({} as const, 'a')
+otherSwitchStatement.case({ a: true } as const, 'a')
+otherSwitchStatement.case({ a: () => '' } as const, 'a')
+otherSwitchStatement.case([] as const, 'a')
+otherSwitchStatement.case([true] as const, 'a')
+otherSwitchStatement.case([() => ''] as const, 'a')
+otherSwitchStatement.case(() => true, 'a')
+otherSwitchStatement.case((value: true) => true, 'a')
+otherCaseStatement.case(0, 'a')
+otherCaseStatement.case(0n, 'a')
+otherCaseStatement.case(true, 'a')
+otherCaseStatement.case(null, 'a')
+otherCaseStatement.case(undefined, 'a')
+otherCaseStatement.case('', 'a')
+otherCaseStatement.case(Symbol(''), 'a')
+otherCaseStatement.case({} as const, 'a')
+otherCaseStatement.case({ a: true } as const, 'a')
+otherCaseStatement.case({ a: () => '' } as const, 'a')
+otherCaseStatement.case([] as const, 'a')
+otherCaseStatement.case([true] as const, 'a')
+otherCaseStatement.case([{} as const] as const, 'a')
+otherCaseStatement.case([() => ''] as const, 'a')
+otherCaseStatement.case(() => true, 'a')
+otherCaseStatement.case((value: true) => true, 'a')
+
 // @ts-expect-error
 switchStatement.case(() => '', true)
 // @ts-expect-error
@@ -359,6 +411,19 @@ customCaseStatement(0, true)
 customCaseStatement(true, true)
 // @ts-expect-error
 customCaseStatement(() => '', true)
+
+// @ts-expect-error
+otherSwitchStatement.case(() => '', 'a')
+// @ts-expect-error
+otherSwitchStatement.case((value: false) => true, 'a')
+// @ts-expect-error
+otherSwitchStatement.case((value: true, second: true) => true, 'a')
+// @ts-expect-error
+otherCaseStatement.case(() => '', 'a')
+// @ts-expect-error
+otherCaseStatement.case((value: false) => true, 'a')
+// @ts-expect-error
+otherCaseStatement.case((value: true, second: true) => true, 'a')
 
 switchStatement.case(true, 0)
 switchStatement.case(true, 0n)
@@ -405,6 +470,34 @@ customCaseStatement.case('a', {} as const)
 customCaseStatement.case('a', [] as const)
 customCaseStatement.case('a', () => {})
 customCaseStatement.case('a', (value: true) => {})
+
+otherSwitchStatement.case(true, 'a')
+otherSwitchStatement.case(true, 'a', true)
+
+// @ts-expect-error
+otherSwitchStatement.case(true, 0)
+// @ts-expect-error
+otherSwitchStatement.case(true, () => 'a')
+// @ts-expect-error
+otherSwitchStatement.case()
+// @ts-expect-error
+otherSwitchStatement.case(true)
+// @ts-expect-error
+otherSwitchStatement.case(true, 'a', 0)
+// @ts-expect-error
+otherSwitchStatement.case(true, 'a', true, 0)
+// @ts-expect-error
+otherCaseStatement.case(true, 0)
+// @ts-expect-error
+otherCaseStatement.case(true, () => 'a')
+// @ts-expect-error
+otherCaseStatement.case()
+// @ts-expect-error
+otherCaseStatement.case(true)
+// @ts-expect-error
+otherCaseStatement.case(true, 'a', 0)
+// @ts-expect-error
+otherCaseStatement.case(true, 'a', true, 0)
 
 // @ts-expect-error
 switchStatement.case()
@@ -490,6 +583,30 @@ customCaseStatement.default([] as const)
 customCaseStatement.default(() => {})
 customCaseStatement.default((value: true) => {})
 
+otherSwitchStatement.default('a')
+otherSwitchStatement.default('a', true)
+
+// @ts-expect-error
+otherSwitchStatement.default(0)
+// @ts-expect-error
+otherSwitchStatement.default(() => 'a')
+// @ts-expect-error
+otherSwitchStatement.default()
+// @ts-expect-error
+otherSwitchStatement.default('a', 0)
+// @ts-expect-error
+otherSwitchStatement.default('a', true, 0)
+// @ts-expect-error
+otherCaseStatement.default(0)
+// @ts-expect-error
+otherCaseStatement.default(() => 'a')
+// @ts-expect-error
+otherCaseStatement.default()
+// @ts-expect-error
+otherCaseStatement.default('a', 0)
+// @ts-expect-error
+otherCaseStatement.default('a', true, 0)
+
 // @ts-expect-error
 switchStatement.default()
 // @ts-expect-error
@@ -538,6 +655,13 @@ customSwitchStatement.other()
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
 customCaseStatement.other()
 
+// @ts-expect-error
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+otherSwitchStatement.other()
+// @ts-expect-error
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+otherCaseStatement.other()
+
 expectType<1>(switchStatement.default(1 as const))
 expectType<1 | 2>(switchStatement.case(true, 1 as const).default(2 as const))
 expectType<0 | 1>(caseStatement.default(1 as const))
@@ -550,6 +674,15 @@ expectType<1 | 2>(
 expectType<0 | 1>(customCaseStatement.default(1 as const))
 expectType<0 | 1 | 2>(
   customCaseStatement.case('a', 1 as const).default(2 as const),
+)
+
+expectType<boolean>(otherSwitchStatement.default('a' as const))
+expectType<boolean>(
+  otherSwitchStatement.case(true, 'a' as const).default('b' as const),
+)
+expectType<boolean>(otherCaseStatement.default('a' as const))
+expectType<boolean>(
+  otherCaseStatement.case(true, 'a' as const).default('b' as const),
 )
 
 expectType<Switch<1, never, never, true>>(
@@ -578,19 +711,42 @@ expectType<Switch<0 | 1 | 2, string, never, true>>(
   customCaseStatement.case('a', 1 as const).case('a', 2 as const),
 )
 
-expectAssignable<Switch<1 | 2, never, never, true>>(
-  switchStatement.case(true, 1 as const),
-)
-expectAssignable<Switch<0 | 1 | 2, never, never, true>>(
-  caseStatement.case(true, 1 as const),
-)
-
-expectAssignable<Switch<1 | 2, string, never, true>>(
-  customSwitchStatement.case('a', 1 as const),
-)
-expectAssignable<Switch<0 | 1 | 2, string, never, true>>(
-  customCaseStatement.case('a', 1 as const),
-)
+expectType<
+  Switch<
+    boolean,
+    never,
+    [one: string, two?: boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(otherSwitchStatement.case(true, 'a' as const))
+expectType<
+  Switch<
+    boolean,
+    never,
+    [one: string, two?: boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(otherSwitchStatement.case(true, 'a' as const).case(true, 'b' as const))
+expectType<
+  Switch<
+    boolean,
+    never,
+    [one: string, two?: boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(otherCaseStatement.case(true, 'a' as const))
+expectType<
+  Switch<
+    boolean,
+    never,
+    [one: string, two?: boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(otherCaseStatement.case(true, 'a' as const).case(true, 'b' as const))
 
 expectType<undefined>(switchStatement.default(undefined))
 expectType<undefined>(switchStatement.default(() => undefined))
