@@ -6,11 +6,12 @@ import switchFunctional from 'switch-functional'
 const noop = () => {}
 
 const getStub = <T>(value: T) => {
-  const state = { called: false }
+  const state = { called: false, lastArgument: undefined as unknown }
   return {
     state,
-    stub: () => {
+    stub: (lastArgument: unknown) => {
       state.called = true
+      state.lastArgument = lastArgument
       return value
     },
   }
@@ -50,6 +51,7 @@ test('Calls default if matched', (t) => {
   const { stub, state } = getStub(2)
   t.is(switchFunctional(0).case(false, 1).default(stub), 2)
   t.true(state.called)
+  t.is(state.lastArgument, 0)
 })
 
 test('Does not call case if not matched', (t) => {
@@ -68,6 +70,7 @@ test('Calls case if matched', (t) => {
   const { stub, state } = getStub(2)
   t.is(switchFunctional(0).case(false, 1).case(true, stub).default(3), 2)
   t.true(state.called)
+  t.is(state.lastArgument, 0)
 })
 
 each(
@@ -111,6 +114,60 @@ each(
   ({ title }, [expectedReturn, condition]) => {
     test(`Can match function conditions | ${title}`, (t) => {
       t.is(switchFunctional(0).case(condition, 1).default(2), expectedReturn)
+    })
+  },
+)
+
+const symbolOne = Symbol('one')
+const symbolTwo = Symbol('two')
+
+each(
+  [
+    [0, 0],
+    [0n, 0n],
+    ['', ''],
+    ['.', '.'],
+    [true, true],
+    [symbolOne, symbolOne],
+    [null, null],
+    [undefined, undefined],
+    [[], [[]]],
+    [[0], [[0]]],
+    [[0, 1], [[0, 1]]],
+  ] as const,
+  ({ title }, [input, condition]) => {
+    test(`Can match equality conditions | ${title}`, (t) => {
+      t.is(switchFunctional(input).case(condition, 1).default(2), 1)
+    })
+  },
+)
+
+each(
+  [
+    [0, 1],
+    [0, -0],
+    [0, 0n],
+    [0, '0'],
+    [0n, 1n],
+    ['', '.'],
+    ['.', '. '],
+    [symbolOne, symbolTwo],
+    [null, undefined],
+    [0, {}],
+    [{}, 0],
+    [0, [[]]],
+    [[], 0],
+    [[], {}],
+    [{}, [[]]],
+    [[], [[0]]],
+    [[0], [[]]],
+    [[0], [[0, 1]]],
+    [[0, 1], [[0]]],
+    [[0], [[1]]],
+  ] as const,
+  ({ title }, [input, condition]) => {
+    test(`Can not match equality conditions | ${title}`, (t) => {
+      t.is(switchFunctional(input).case(condition, 1).default(2), 2)
     })
   },
 )
