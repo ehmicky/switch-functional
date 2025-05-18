@@ -16,12 +16,6 @@ export interface Switch<AddedEffects extends Effect = never> {
   ) => AddedEffects | GetNewEffect<NewEffect>
 }
 
-type GetNewEffect<NewEffect extends Effect> = NewEffect extends EffectFunction
-  ? ReturnType<NewEffect>
-  : NewEffect
-
-type EffectFunction = (value: unknown) => unknown
-
 // `switchFunctional(value)[.case(...)].case(conditions, effect)`
 const addCase =
   <AddedEffects extends Effect>({ resolved, value }: Context) =>
@@ -89,7 +83,7 @@ const isObject = (value: Value): value is { [name: PropertyKey]: unknown } =>
   typeof value === 'object' && value !== null
 
 const applyEffect = (value: Value, effect: Effect): unknown =>
-  typeof effect === 'function' ? (effect as FunctionEffect)(value) : effect
+  typeof effect === 'function' ? (effect as EffectFunction)(value) : effect
 
 /**
  *
@@ -126,4 +120,8 @@ export type Condition =
 
 type Effect = unknown
 
-type FunctionEffect = (value: unknown) => unknown
+type GetNewEffect<NewEffect extends Effect> = NewEffect extends EffectFunction
+  ? ReturnType<NewEffect>
+  : NewEffect
+
+type EffectFunction = (value: unknown) => unknown
