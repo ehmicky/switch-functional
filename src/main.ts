@@ -5,9 +5,13 @@ const chain =
     resolved: Resolved,
     finalValue?: FinalReturnValues,
   ) =>
-  <OriginalInput extends Input, CustomCondition = never>(
+  <
+    OriginalInput extends Input,
+    CustomCondition = never,
+    CustomReturnValue = never,
+  >(
     input: OriginalInput,
-    options: Options<CustomCondition, OriginalInput> = {},
+    options: Options<CustomCondition, CustomReturnValue, OriginalInput> = {},
   ) => ({
     /**
      * If the `input` matches the `conditions`, the final return value will be
@@ -16,12 +20,12 @@ const chain =
      * `caseReturnValue` can optionally be a function taking the `input` as
      * argument.
      */
-    case: addCase<CustomCondition, OriginalInput, FinalReturnValues>(
-      options,
-      resolved,
-      input,
-      finalValue,
-    ),
+    case: addCase<
+      CustomCondition,
+      CustomReturnValue,
+      OriginalInput,
+      FinalReturnValues
+    >(options, resolved, input, finalValue),
 
     /**
      * If one of the `.case()` statements matched, returns its
@@ -30,12 +34,12 @@ const chain =
      * `defaultReturnValue` can optionally be a function taking the `input` as
      * argument.
      */
-    default: useDefault<CustomCondition, OriginalInput, FinalReturnValues>(
-      options,
-      resolved,
-      input,
-      finalValue,
-    ),
+    default: useDefault<
+      CustomCondition,
+      CustomReturnValue,
+      OriginalInput,
+      FinalReturnValues
+    >(options, resolved, input, finalValue),
   })
 
 /**
@@ -44,6 +48,7 @@ const chain =
 export interface Switch<
   FinalReturnValues extends FinalReturnValue = never,
   CustomCondition = never,
+  CustomReturnValue = never,
   OriginalInput extends Input = Input,
 > {
   case: <NewReturnValue extends ReturnValue<OriginalInput>>(
@@ -52,6 +57,7 @@ export interface Switch<
   ) => Switch<
     FinalReturnValues | ValueOrReturn<NewReturnValue>,
     CustomCondition,
+    CustomReturnValue,
     OriginalInput
   >
   default: <NewReturnValue extends ReturnValue<OriginalInput>>(
@@ -63,10 +69,11 @@ export interface Switch<
 const addCase =
   <
     CustomCondition,
+    CustomReturnValue,
     OriginalInput extends Input,
     FinalReturnValues extends FinalReturnValue,
   >(
-    options: Options<CustomCondition, OriginalInput>,
+    options: Options<CustomCondition, CustomReturnValue, OriginalInput>,
     resolved: boolean,
     input: OriginalInput,
     finalValue?: FinalReturnValues,
@@ -77,12 +84,14 @@ const addCase =
   ): Switch<
     FinalReturnValues | ValueOrReturn<NewReturnValue>,
     CustomCondition,
+    CustomReturnValue,
     OriginalInput
   > =>
     resolved || !matchesConditions(input, conditions, options)
       ? (chain(resolved, finalValue)(input, options) as Switch<
           FinalReturnValues,
           CustomCondition,
+          CustomReturnValue,
           OriginalInput
         >)
       : (chain(true, applyReturnValue(input, caseReturnValue))(
@@ -91,6 +100,7 @@ const addCase =
         ) as Switch<
           ValueOrReturn<NewReturnValue>,
           CustomCondition,
+          CustomReturnValue,
           OriginalInput
         >)
 
@@ -98,10 +108,11 @@ const addCase =
 const useDefault =
   <
     CustomCondition,
+    CustomReturnValue,
     OriginalInput extends Input,
     FinalReturnValues extends FinalReturnValue,
   >(
-    options: Options<CustomCondition, OriginalInput>,
+    options: Options<CustomCondition, CustomReturnValue, OriginalInput>,
     resolved: boolean,
     input: OriginalInput,
     finalValue?: FinalReturnValues,
@@ -116,10 +127,14 @@ const useDefault =
           defaultReturnValue,
         ) as ValueOrReturn<NewReturnValue>)
 
-const matchesConditions = <CustomCondition, OriginalInput extends Input>(
+const matchesConditions = <
+  CustomCondition,
+  CustomReturnValue,
+  OriginalInput extends Input,
+>(
   input: OriginalInput,
   conditions: AnyConditions<CustomCondition, OriginalInput>,
-  options: Options<CustomCondition, OriginalInput>,
+  options: Options<CustomCondition, CustomReturnValue, OriginalInput>,
 ) =>
   Array.isArray(conditions)
     ? conditions.some((condition) =>
@@ -135,10 +150,14 @@ const matchesConditions = <CustomCondition, OriginalInput extends Input>(
         options,
       )
 
-const matchesCondition = <CustomCondition, OriginalInput extends Input>(
+const matchesCondition = <
+  CustomCondition,
+  CustomReturnValue,
+  OriginalInput extends Input,
+>(
   input: OriginalInput,
   condition: AnyCondition<CustomCondition, OriginalInput>,
-  { mapCondition }: Options<CustomCondition, OriginalInput>,
+  { mapCondition }: Options<CustomCondition, CustomReturnValue, OriginalInput>,
 ) => {
   const normalizedCondition =
     mapCondition === undefined
@@ -353,6 +372,7 @@ type ValueOrReturn<NewReturnValue> = NewReturnValue extends (
  */
 export interface Options<
   CustomCondition = unknown,
+  CustomReturnValue = unknown,
   OriginalInput extends Input = Input,
 > {
   /**
@@ -361,4 +381,11 @@ export interface Options<
   readonly mapCondition?: (
     customCondition: CustomCondition,
   ) => Condition<OriginalInput>
+
+  /**
+   *
+   */
+  readonly mapReturnValues?: (
+    customReturnValues: CustomReturnValue[],
+  ) => ReturnValue<OriginalInput>
 }

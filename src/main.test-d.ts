@@ -8,9 +8,9 @@ import switchFunctional, {
 
 const switchStatement = switchFunctional(true as const)
 expectAssignable<Switch>(switchStatement)
-expectType<Switch<never, never, true>>(switchStatement)
+expectType<Switch<never, never, never, true>>(switchStatement)
 
-expectType<Switch<never, never, true>>(
+expectType<Switch<never, never, never, true>>(
   switchFunctional(true as const, {} as const),
 )
 expectAssignable<Options>({} as const)
@@ -26,9 +26,9 @@ expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => (value: unknown) =>
     customCondition === 'a',
 } as const)
-expectType<Switch<never, string, true>>(customSwitchStatement)
+expectType<Switch<never, string, never, true>>(customSwitchStatement)
 
-expectType<Switch<never, string, true>>(
+expectType<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: string) => true } as const,
@@ -37,7 +37,7 @@ expectType<Switch<never, string, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => true,
 } as const)
-expectType<Switch<never, string, true>>(
+expectType<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: string) => 1 } as const,
@@ -46,7 +46,7 @@ expectType<Switch<never, string, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => 1,
 } as const)
-expectType<Switch<never, string, true>>(
+expectType<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: string) => undefined } as const,
@@ -55,7 +55,7 @@ expectType<Switch<never, string, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => undefined,
 } as const)
-expectType<Switch<never, unknown, true>>(
+expectType<Switch<never, unknown, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: unknown) => true } as const,
@@ -64,7 +64,7 @@ expectType<Switch<never, unknown, true>>(
 expectAssignable<Options<unknown>>({
   mapCondition: (customCondition: unknown) => true,
 } as const)
-expectType<Switch<never, string, true>>(
+expectType<Switch<never, string, never, true>>(
   switchFunctional(true as const, {
     mapCondition: (customCondition: string) => () => customCondition === 'a',
   }),
@@ -132,13 +132,13 @@ switchFunctional([] as const)
 switchFunctional(() => {})
 
 const caseStatement = switchStatement.case(true, 0)
-expectType<Switch<0, never, true>>(caseStatement)
+expectType<Switch<0, never, never, true>>(caseStatement)
 
 const customCaseStatement = customSwitchStatement.case('a', 0)
-expectType<Switch<0, string, true>>(customCaseStatement)
+expectType<Switch<0, string, never, true>>(customCaseStatement)
 
-expectType<Switch<0 | 1, never, true>>(caseStatement.case(true, 1))
-expectType<Switch<0 | 1, string, true>>(customCaseStatement.case('a', 1))
+expectType<Switch<0 | 1, never, never, true>>(caseStatement.case(true, 1))
+expectType<Switch<0 | 1, string, never, true>>(customCaseStatement.case('a', 1))
 
 switchStatement.case(0, true)
 switchStatement.case(0n, true)
@@ -415,37 +415,43 @@ expectType<0 | 1 | 2>(
   customCaseStatement.case('a', 1 as const).default(2 as const),
 )
 
-expectType<Switch<1, never, true>>(switchStatement.case(true, 1 as const))
-expectType<Switch<1 | 2, never, true>>(
+expectType<Switch<1, never, never, true>>(
+  switchStatement.case(true, 1 as const),
+)
+expectType<Switch<1 | 2, never, never, true>>(
   switchStatement.case(true, 1 as const).case(true, 2 as const),
 )
-expectType<Switch<0 | 1, never, true>>(caseStatement.case(true, 1 as const))
-expectType<Switch<0 | 1 | 2, never, true>>(
+expectType<Switch<0 | 1, never, never, true>>(
+  caseStatement.case(true, 1 as const),
+)
+expectType<Switch<0 | 1 | 2, never, never, true>>(
   caseStatement.case(true, 1 as const).case(true, 2 as const),
 )
 
-expectType<Switch<1, string, true>>(customSwitchStatement.case('a', 1 as const))
-expectType<Switch<1 | 2, string, true>>(
+expectType<Switch<1, string, never, true>>(
+  customSwitchStatement.case('a', 1 as const),
+)
+expectType<Switch<1 | 2, string, never, true>>(
   customSwitchStatement.case('a', 1 as const).case('a', 2 as const),
 )
-expectType<Switch<0 | 1, string, true>>(
+expectType<Switch<0 | 1, string, never, true>>(
   customCaseStatement.case('a', 1 as const),
 )
-expectType<Switch<0 | 1 | 2, string, true>>(
+expectType<Switch<0 | 1 | 2, string, never, true>>(
   customCaseStatement.case('a', 1 as const).case('a', 2 as const),
 )
 
-expectAssignable<Switch<1 | 2, never, true>>(
+expectAssignable<Switch<1 | 2, never, never, true>>(
   switchStatement.case(true, 1 as const),
 )
-expectAssignable<Switch<0 | 1 | 2, never, true>>(
+expectAssignable<Switch<0 | 1 | 2, never, never, true>>(
   caseStatement.case(true, 1 as const),
 )
 
-expectAssignable<Switch<1 | 2, string, true>>(
+expectAssignable<Switch<1 | 2, string, never, true>>(
   customSwitchStatement.case('a', 1 as const),
 )
-expectAssignable<Switch<0 | 1 | 2, string, true>>(
+expectAssignable<Switch<0 | 1 | 2, string, never, true>>(
   customCaseStatement.case('a', 1 as const),
 )
 
