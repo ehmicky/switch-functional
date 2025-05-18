@@ -87,3 +87,30 @@ test('Can return a function from another one', (t) => {
     noop,
   )
 })
+
+each(
+  [
+    [1, true, true],
+    [1, true, false],
+    [1, false, true],
+    [2, false, false],
+    [1, () => false, true],
+  ] as const,
+  ({ title }, [expectedReturn, ...conditions]) => {
+    test(`Can match array conditions | ${title}`, (t) => {
+      t.is(switchFunctional(0).case(conditions, 1).default(2), expectedReturn)
+    })
+  },
+)
+
+each(
+  [
+    [1, () => true],
+    [2, () => false],
+  ] as const,
+  ({ title }, [expectedReturn, condition]) => {
+    test(`Can match function conditions | ${title}`, (t) => {
+      t.is(switchFunctional(0).case(condition, 1).default(2), expectedReturn)
+    })
+  },
+)
