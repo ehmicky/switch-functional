@@ -1,27 +1,48 @@
 // Functional `switch` statement
-const chain = (resolved: Resolved, value: Value): Switch => ({
-  case: addCase.bind(undefined, { resolved, value }),
-  default: useDefault.bind(undefined, { resolved, value }),
-})
+const chain =
+  <AddedEffects extends Effect>(resolved: Resolved) =>
+  (value: Value) => ({
+    case: addCase<AddedEffects>({ resolved, value }),
+    default: useDefault<AddedEffects>({ resolved, value }),
+  })
 
-export interface Switch {
-  case: (conditions: Conditions, effect: Effect) => Switch
-  default: (effect: Effect) => unknown
+export interface Switch<AddedEffects extends Effect = never> {
+  case: <NewEffect extends Effect>(
+    conditions: Conditions,
+    effect: NewEffect,
+  ) => Switch<AddedEffects | GetNewEffect<NewEffect>>
+  default: <NewEffect extends Effect>(
+    effect: NewEffect,
+  ) => AddedEffects | GetNewEffect<NewEffect>
 }
 
+type GetNewEffect<NewEffect extends Effect> = NewEffect extends EffectFunction
+  ? ReturnType<NewEffect>
+  : NewEffect
+
+type EffectFunction = (value: unknown) => unknown
+
 // `switchFunctional(value)[.case(...)].case(conditions, effect)`
-const addCase = (
-  { resolved, value }: Context,
-  conditions: Conditions,
-  effect: Effect,
-) =>
-  resolved || !matchesConditions(value, conditions)
-    ? chain(resolved, value)
-    : chain(true, applyEffect(value, effect))
+const addCase =
+  <AddedEffects extends Effect>({ resolved, value }: Context) =>
+  <NewEffect extends Effect>(
+    conditions: Conditions,
+    effect: NewEffect,
+  ): Switch<AddedEffects | GetNewEffect<NewEffect>> =>
+    resolved || !matchesConditions(value, conditions)
+      ? chain<AddedEffects>(resolved)(value)
+      : chain<AddedEffects | GetNewEffect<NewEffect>>(true)(
+          applyEffect(value, effect),
+        )
 
 // `switchFunctional(value)[.case()...].default(effect)`
-const useDefault = ({ resolved, value }: Context, effect: Effect) =>
-  resolved ? value : applyEffect(value, effect)
+const useDefault =
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  <AddedEffects extends Effect>({ resolved, value }: Context) =>
+    <NewEffect extends Effect>(effect: NewEffect) =>
+      resolved
+        ? (value as AddedEffects)
+        : (applyEffect(value, effect as unknown) as GetNewEffect<NewEffect>)
 
 const matchesConditions = (value: Value, conditions: Conditions) =>
   Array.isArray(conditions)
@@ -76,7 +97,7 @@ const applyEffect = (value: Value, effect: Effect): unknown =>
  * ```js
  * ```
  */
-const switchFunctional = chain.bind(undefined, false)
+const switchFunctional = chain<never>(false)
 
 export default switchFunctional
 

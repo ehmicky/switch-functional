@@ -98,3 +98,6 @@ switchStatement.default(true, true)
 // @ts-expect-error
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
 switchStatement.other()
+
+expectType<1>(switchStatement.default(1 as const))
+expectType<1 | 2>(switchStatement.case(true, 2 as const).default(1 as const))
