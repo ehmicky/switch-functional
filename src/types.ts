@@ -152,15 +152,15 @@ export interface Options<
    * Can return any value condition, including a function taking the `input` as
    * argument. Cannot return an array of conditions.
    *
-   * This allows augmenting the syntax of `.case()` to support domain-specific,
+   * This allows augmenting the syntax of `.case()` to support domain-specific
    * custom conditions.
    *
    * @example
    * ```js
    * import { Admin, Developer } from './user-classes.js'
    *
-   * // Augment the `.case()` syntax to support domain-specific conditions
-   * // This allows conditions to be user classes
+   * // Augment the `.case()` syntax to support domain-specific conditions.
+   * // In this example, this allows conditions to be user classes.
    * const mapCondition = (condition) =>
    *   USER_CLASSES.has(condition) ? (user) => user instanceof condition : condition
    *
@@ -187,7 +187,41 @@ export interface Options<
   ) => Condition<OriginalInput>
 
   /**
+   * Function mapping each return value passed to `.case(..., caseReturnValue)`
+   * or `.default(defaultReturnValue)`.
    *
+   * Can return any value, including a function taking the `input` as argument.
+   *
+   * Can have multiple parameters: this allows calling `.case()` and `.default()`
+   * with multiple arguments.
+   *
+   * This allows augmenting the syntax of `.case()` and `.default()` to support
+   * domain-specific custom transforms.
+   *
+   * @example
+   * ```js
+   * // Augment the `.case()` and `.default()` syntax to support domain-specific
+   * // logic applied on the return values.
+   * // In this example, the return value is kept as is. However, it is logged.
+   * const mapReturnValues = (returnValue) => {
+   *   console.log(returnValue)
+   *   return returnValue
+   * }
+   *
+   * export const customSwitch = (user) =>
+   *   switchFunctional(user, { mapReturnValues })
+   * ```
+   *
+   * ```js
+   * import { customSwitch } from './custom-switch.js'
+   *
+   * // 'developer', 'admin' or 'unknown' will be logged
+   * const getUserType = (user) =>
+   *   customSwitch(user)
+   *     .case(isDeveloper, 'developer')
+   *     .case(isAdmin, 'admin')
+   *     .default('unknown')
+   * ```
    */
   // Known limitations of the types:
   //  - The mapping function must have at least one parameter, even if unused
