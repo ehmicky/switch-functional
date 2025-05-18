@@ -28,6 +28,29 @@ expectAssignable<Options<string>>({
 } as const)
 expectAssignable<Switch<never, string, never, true>>(customSwitchStatement)
 
+const otherSwitchStatement = switchFunctional(
+  true as const,
+  {
+    mapReturnValues: (one: string, two?: boolean) => (value: true) =>
+      one === String(two),
+  } as const,
+)
+expectAssignable<
+  Options<never, [string, boolean | undefined], true, (value: true) => boolean>
+>({
+  mapReturnValues: (one: string, two?: boolean) => (value: true) =>
+    one === String(two),
+} as const)
+expectAssignable<
+  Switch<
+    never,
+    never,
+    [string, boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(otherSwitchStatement)
+
 expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
@@ -37,6 +60,19 @@ expectAssignable<Switch<never, string, never, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => true,
 } as const)
+
+expectAssignable<
+  Switch<never, never, [string, boolean | undefined], true, true>
+>(
+  switchFunctional(
+    true as const,
+    { mapReturnValues: (one: string, two?: boolean) => true } as const,
+  ),
+)
+expectAssignable<Options<never, [string, boolean | undefined], unknown, true>>({
+  mapReturnValues: (one: string, two?: boolean) => true,
+} as const)
+
 expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
@@ -46,6 +82,17 @@ expectAssignable<Switch<never, string, never, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => 1,
 } as const)
+
+expectAssignable<Switch<never, never, [string, boolean | undefined], true, 1>>(
+  switchFunctional(
+    true as const,
+    { mapReturnValues: (one: string, two?: boolean) => 1 } as const,
+  ),
+)
+expectAssignable<Options<never, [string, boolean | undefined], unknown, 1>>({
+  mapReturnValues: (one: string, two?: boolean) => 1,
+} as const)
+
 expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(
     true as const,
@@ -55,15 +102,41 @@ expectAssignable<Switch<never, string, never, true>>(
 expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => undefined,
 } as const)
+
+expectAssignable<
+  Switch<never, never, [string, boolean | undefined], true, undefined>
+>(
+  switchFunctional(
+    true as const,
+    { mapReturnValues: (one: string, two?: boolean) => undefined } as const,
+  ),
+)
+expectAssignable<
+  Options<never, [string, boolean | undefined], unknown, undefined>
+>({
+  mapReturnValues: (one: string, two?: boolean) => undefined,
+} as const)
+
 expectAssignable<Switch<never, unknown, never, true>>(
   switchFunctional(
     true as const,
     { mapCondition: (customCondition: unknown) => true } as const,
   ),
 )
-expectAssignable<Options<unknown>>({
+expectAssignable<Options>({
   mapCondition: (customCondition: unknown) => true,
 } as const)
+
+expectAssignable<Switch<never, never, [unknown], true, true>>(
+  switchFunctional(
+    true as const,
+    { mapReturnValues: (one: unknown) => true } as const,
+  ),
+)
+expectAssignable<Options<never, [unknown], unknown, true>>({
+  mapReturnValues: (one: unknown) => true,
+} as const)
+
 expectAssignable<Switch<never, string, never, true>>(
   switchFunctional(true as const, {
     mapCondition: (customCondition: string) => () => customCondition === 'a',
@@ -73,12 +146,57 @@ expectAssignable<Options<string>>({
   mapCondition: (customCondition: string) => () => customCondition === 'a',
 } as const)
 
+expectAssignable<
+  Options<never, [string, boolean | undefined], true, () => boolean>
+>({
+  mapReturnValues: (one: string, two?: boolean) => () => one === String(two),
+} as const)
+expectAssignable<
+  Switch<
+    never,
+    never,
+    [string, boolean | undefined],
+    true,
+    (value: true) => boolean
+  >
+>(
+  switchFunctional(
+    true as const,
+    {
+      mapReturnValues: (one: string, two?: boolean) => () =>
+        one === String(two),
+    } as const,
+  ),
+)
+
+expectAssignable<Options<never, readonly unknown[], true, boolean>>({
+  mapReturnValues: (...args: readonly unknown[]) => args.length === 1,
+} as const)
+expectAssignable<Switch<never, never, readonly unknown[], true, boolean>>(
+  switchFunctional(
+    true as const,
+    {
+      mapReturnValues: (...args: readonly unknown[]) => args.length === 1,
+    } as const,
+  ),
+)
+
 // @ts-expect-error
 switchFunctional(true as const, { mapCondition: undefined })
 expectNotAssignable<Options>({ mapCondition: undefined })
+
+// @ts-expect-error
+switchFunctional(true as const, { mapReturnValues: undefined })
+expectNotAssignable<Options>({ mapReturnValues: undefined })
+
 // @ts-expect-error
 switchFunctional(true as const, { mapCondition: true })
 expectNotAssignable<Options>({ mapCondition: true })
+
+// @ts-expect-error
+switchFunctional(true as const, { mapReturnValues: true })
+expectNotAssignable<Options>({ mapReturnValues: true })
+
 switchFunctional(true as const, {
   // @ts-expect-error
   mapCondition: (customCondition: 'a', value: 'b') => true,
@@ -86,6 +204,7 @@ switchFunctional(true as const, {
 expectNotAssignable<Options>({
   mapCondition: (customCondition: 'a', value: 'b') => true,
 })
+
 switchFunctional(true as const, {
   // @ts-expect-error
   mapCondition: (customCondition: 'a') => () => customCondition,
@@ -93,6 +212,7 @@ switchFunctional(true as const, {
 expectNotAssignable<Options>({
   mapCondition: (customCondition: 'a') => () => customCondition,
 })
+
 switchFunctional(
   // @ts-expect-error
   true as const,
@@ -105,6 +225,15 @@ expectNotAssignable<Options>({
   mapCondition: (customCondition: string) => (value: false) =>
     customCondition === 'a',
 })
+
+switchFunctional(true as const, {
+  // @ts-expect-error
+  mapReturnValues: (one: string) => (value: false) => one,
+})
+expectNotAssignable<Options>({
+  mapReturnValues: (one: string) => (value: false) => one,
+})
+
 switchFunctional(true as const, {
   // @ts-expect-error
   mapCondition: (customCondition: string) => (value: true, second: true) =>
@@ -113,6 +242,14 @@ switchFunctional(true as const, {
 expectNotAssignable<Options>({
   mapCondition: (customCondition: string) => (value: true, second: true) =>
     customCondition === 'a',
+})
+
+switchFunctional(true as const, {
+  // @ts-expect-error
+  mapReturnValues: (one: string) => (value: true, second: true) => one,
+})
+expectNotAssignable<Options>({
+  mapReturnValues: (one: string) => (value: false, second: true) => one,
 })
 
 // @ts-expect-error

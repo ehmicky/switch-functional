@@ -8,7 +8,7 @@ const chain =
   <
     OriginalInput extends Input,
     CustomCondition = never,
-    CustomReturnValues extends unknown[] = never,
+    CustomReturnValues extends readonly unknown[] = never,
     StrictReturnValue extends ReturnValue<OriginalInput> = never,
   >(
     input: OriginalInput,
@@ -56,7 +56,7 @@ const chain =
 export interface Switch<
   FinalReturnValues extends FinalReturnValue = never,
   CustomCondition = never,
-  CustomReturnValues extends unknown[] = never,
+  CustomReturnValues extends readonly unknown[] = never,
   OriginalInput extends Input = Input,
   StrictReturnValue extends
     ReturnValue<OriginalInput> = ReturnValue<OriginalInput>,
@@ -88,7 +88,7 @@ export interface Switch<
 const addCase =
   <
     CustomCondition,
-    CustomReturnValues extends unknown[],
+    CustomReturnValues extends readonly unknown[],
     OriginalInput extends Input,
     StrictReturnValue extends ReturnValue<OriginalInput>,
     FinalReturnValues extends FinalReturnValue,
@@ -140,7 +140,7 @@ const addCase =
 const useDefault =
   <
     CustomCondition,
-    CustomReturnValues extends unknown[],
+    CustomReturnValues extends readonly unknown[],
     OriginalInput extends Input,
     StrictReturnValue extends ReturnValue<OriginalInput>,
     FinalReturnValues extends FinalReturnValue,
@@ -172,7 +172,7 @@ const useDefault =
 
 const matchesConditions = <
   CustomCondition,
-  CustomReturnValues extends unknown[],
+  CustomReturnValues extends readonly unknown[],
   OriginalInput extends Input,
   StrictReturnValue extends ReturnValue<OriginalInput>,
 >(
@@ -201,7 +201,7 @@ const matchesConditions = <
 
 const matchesCondition = <
   CustomCondition,
-  CustomReturnValues extends unknown[],
+  CustomReturnValues extends readonly unknown[],
   OriginalInput extends Input,
   StrictReturnValue extends ReturnValue<OriginalInput>,
 >(
@@ -259,7 +259,7 @@ const isObject = (input: Input): input is { [name: PropertyKey]: unknown } =>
 
 const applyReturnValues = <
   CustomCondition,
-  CustomReturnValues extends unknown[],
+  CustomReturnValues extends readonly unknown[],
   OriginalInput extends Input,
   StrictReturnValue extends ReturnValue<OriginalInput>,
 >(
@@ -424,7 +424,7 @@ type ConditionFunction<OriginalInput extends Input> = (
 ) => boolean
 
 type AnyReturnValues<
-  CustomReturnValues extends unknown[],
+  CustomReturnValues extends readonly unknown[],
   OriginalInput extends Input,
   NewReturnValue extends ReturnValue<OriginalInput>,
 > = CustomReturnValues[] extends never[]
@@ -454,7 +454,7 @@ type GetFinalValue<NewReturnValue, StrictReturnValue> = ReturnOrValue<
 >
 
 type ReturnOrValue<NewReturnValue> = NewReturnValue extends (
-  ...args: never[]
+  ...args: readonly never[]
 ) => unknown
   ? ReturnType<NewReturnValue>
   : NewReturnValue
@@ -464,7 +464,7 @@ type ReturnOrValue<NewReturnValue> = NewReturnValue extends (
  */
 export interface Options<
   CustomCondition = unknown,
-  CustomReturnValues extends unknown[] = unknown[],
+  CustomReturnValues extends readonly unknown[] = unknown[],
   OriginalInput extends Input = Input,
   StrictReturnValue extends
     ReturnValue<OriginalInput> = ReturnValue<OriginalInput>,
