@@ -19,10 +19,10 @@ const chain =
 export interface Switch<ReturnValues extends ReturnValue = never> {
   case: <NewReturnValue extends ReturnValue>(
     conditions: Conditions,
-    returnValue: NewReturnValue,
+    caseReturnValue: NewReturnValue,
   ) => Switch<ReturnValues | GetReturnValue<NewReturnValue>>
   default: <NewReturnValue extends ReturnValue>(
-    returnValue: NewReturnValue,
+    defaultReturnValue: NewReturnValue,
   ) => ReturnValues | GetReturnValue<NewReturnValue>
 }
 
@@ -31,24 +31,24 @@ const addCase =
   <ReturnValues extends ReturnValue>({ resolved, input }: Context) =>
   <NewReturnValue extends ReturnValue>(
     conditions: Conditions,
-    returnValue: NewReturnValue,
+    caseReturnValue: NewReturnValue,
   ): Switch<ReturnValues | GetReturnValue<NewReturnValue>> =>
     resolved || !matchesConditions(input, conditions)
       ? chain<ReturnValues>(resolved)(input)
       : chain<ReturnValues | GetReturnValue<NewReturnValue>>(true)(
-          applyReturnValue(input, returnValue),
+          applyReturnValue(input, caseReturnValue),
         )
 
 // `switchFunctional(input)[.case()...].default(returnValue)`
 const useDefault =
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   <ReturnValues extends ReturnValue>({ resolved, input }: Context) =>
-    <NewReturnValue extends ReturnValue>(returnValue: NewReturnValue) =>
+    <NewReturnValue extends ReturnValue>(defaultReturnValue: NewReturnValue) =>
       resolved
         ? (input as ReturnValues)
         : (applyReturnValue(
             input,
-            returnValue as unknown,
+            defaultReturnValue as unknown,
           ) as GetReturnValue<NewReturnValue>)
 
 const matchesConditions = (input: Input, conditions: Conditions) =>

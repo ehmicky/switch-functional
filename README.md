@@ -6,16 +6,59 @@
 [![Mastodon](https://img.shields.io/badge/-Mastodon-808080.svg?logo=mastodon&colorA=404040&logoColor=9590F9)](https://fosstodon.org/@ehmicky)
 [![Medium](https://img.shields.io/badge/-Medium-808080.svg?logo=medium&colorA=404040)](https://medium.com/@ehmicky)
 
-Functional switch statement.
+Functional switch statement. Strictly typed.
 
-Work in progress!
+# Examples
 
-# Features
-
-# Example
+## Basic usage
 
 ```js
 import switchFunctional from 'switch-functional'
+
+const getUserType = (user) =>
+  switchFunctional(user)
+    .case(isDeveloper, 'developer')
+    .case([isAdmin, isOwner], 'admin')
+    .default('unknown')
+```
+
+Is the same as:
+
+```js
+const getUserType = (user) => {
+  if (isDeveloper(user)) {
+    return 'developer'
+  }
+
+  if (isAdmin(user) || isOwner(user)) {
+    return 'admin'
+  }
+
+  return 'unknown'
+}
+```
+
+## Testing properties
+
+```js
+const getUserType = (user) =>
+  switchFunctional(user)
+    .case({ hasDevProjects: true }, 'developer')
+    // Check for deep properties
+    .case({ devProjectsCount: 0, permissions: { admin: true } }, 'admin')
+    .default('unknown')
+```
+
+## Dynamic return
+
+<!-- eslint-disable no-shadow -->
+
+```js
+const getUserType = (user) =>
+  switchFunctional(user)
+    .case(isDeveloper, (user) => user.developerType)
+    .case(isAdmin, (user) => user.adminType)
+    .default((user) => user.genericType)
 ```
 
 # Install
@@ -23,10 +66,6 @@ import switchFunctional from 'switch-functional'
 ```bash
 npm install switch-functional
 ```
-
-<!--
-This package works in Node.js >=18.18.0.
--->
 
 This package works in both Node.js >=18.18.0 and
 [browsers](https://raw.githubusercontent.com/ehmicky/dev-tasks/main/src/browserslist).
@@ -39,19 +78,45 @@ not CommonJS.
 
 # API
 
-## switchFunctional(value, options?)
+## switchFunctional(input)
 
-`value` `unknown`\
-`options` [`Options?`](#options)\
-_Return value_: [`unknown`](#return-value)
+`input` `unknown`\
+_Return value_: [`Switch`](#switchcaseconditions-casereturnvalue)
 
-### Options
+Functional switch statement. This must be chained with
+[`.case()`](#switchcaseconditions-casereturnvalue) and end with
+[`.default()`](#switchdefaultdefaultreturnvalue).
 
-Object with the following properties.
+## Switch.case(conditions, caseReturnValue)
 
-### Return value
+`conditions`: [`Condition | Condition[]`](#condition)\
+`caseReturnValue`: `unknown | (input) => unknown`\
+_Return value_: [`Switch`](#switchcaseconditions-casereturnvalue)
 
-Object with the following properties.
+If the `input` matches the `conditions`, the final return value will be
+`caseReturnValue`.
+
+`caseReturnValue` can optionally be a function taking the `input` as argument.
+
+## Switch.default(defaultReturnValue)
+
+`defaultReturnValue`: `unknown | (input) => unknown`\
+_Return value_: `unknown`
+
+If one of the [`.case()`](#switchcaseconditions-casereturnvalue) statements
+matched, returns its `caseReturnValue`. Else, returns `defaultReturnValue`.
+
+`defaultReturnValue` can optionally be a function taking the `input` as
+argument.
+
+## Condition
+
+The `conditions` can be:
+
+- An object containing of subset of properties
+- A filtering function taking the `input` as argument and returning a boolean
+- A boolean
+- An array of the above types, checking if _any_ condition in the array matches
 
 # Related projects
 
