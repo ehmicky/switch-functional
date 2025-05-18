@@ -3,12 +3,19 @@ const chain =
   <ReturnValues extends ReturnValue>(resolved: Resolved) =>
   (input: Input) => ({
     /**
+     * If the `input` matches the `conditions`, the final return value will be
+     * `caseReturnValue`.
      *
+     * `caseReturnValue` can optionally be a function taking the `input` as argument.
      */
     case: addCase<ReturnValues>({ resolved, input }),
 
     /**
+     * If one of the `.case()` statements matched, returns its
+     * `caseReturnValue`. Else, returns `defaultReturnValue`.
      *
+     * `defaultReturnValue` can optionally be a function taking the `input` as
+     * argument.
      */
     default: useDefault<ReturnValues>({ resolved, input }),
   })
@@ -101,9 +108,85 @@ const applyReturnValue = (input: Input, ReturnValue: ReturnValue): unknown =>
     : ReturnValue
 
 /**
+ * Functional switch statement. This must be chained with
+ * `.case()` statements and end with `.default()`.
  *
- * @example
+ * @example <caption>Basic usage</caption>
  * ```js
+ * import switchFunctional from 'switch-functional'
+ *
+ * const getUserType = (user) =>
+ *   switchFunctional(user.type)
+ *     .case('dev', 'developer')
+ *     .case(['admin', 'owner'], 'administrator')
+ *     .default('unknown')
+ * ```
+ *
+ * This is equivalent to:
+ *
+ * ```js
+ * const getUserType = (user) => {
+ *   switch (user.type) {
+ *     case 'dev': {
+ *       return 'developer'
+ *     }
+ *
+ *     case 'admin':
+ *
+ *     case 'owner': {
+ *      return 'administrator'
+ *     }
+ *
+ *     default: {
+ *       return 'unknown'
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * @example <caption>Testing input</caption>
+ * ```js
+ * const getUserType = (user) =>
+ *   switchFunctional(user)
+ *     .case(isDeveloper, 'developer')
+ *     .case([isAdmin, isOwner], 'admin')
+ *     .default('unknown')
+ * ```
+ *
+ * This is equivalent to:
+ *
+ * ```js
+ * const getUserType = (user) => {
+ *   if (isDeveloper(user)) {
+ *     return 'developer'
+ *   }
+ *
+ *   if (isAdmin(user) || isOwner(user)) {
+ *     return 'admin'
+ *   }
+ *
+ *   return 'unknown'
+ * }
+ * ```
+ *
+ * @example <caption>Testing properties</caption>
+ * ```js
+ * const getUserType = (user) =>
+ *   switchFunctional(user)
+ *     // Checks `user.hasDevProjects === true`
+ *     .case({ hasDevProjects: true }, 'developer')
+ *     // Checks for deep properties
+ *     .case({ devProjectsCount: 0, permissions: { admin: true } }, 'admin')
+ *     .default('unknown')
+ * ```
+ *
+ * @example <caption>Returning dynamic values</caption>
+ * ```js
+ * const getUserType = (user) =>
+ *   switchFunctional(user)
+ *     .case(isDeveloper, (user) => user.developerType)
+ *     .case(isAdmin, (user) => user.adminType)
+ *     .default((user) => user.genericType)
  * ```
  */
 const switchFunctional = chain<never>(false)
@@ -121,6 +204,16 @@ interface Context {
 
 type Conditions = Condition | readonly Condition[]
 
+/**
+ * The `conditions` can be:
+ *
+ * - Any value, checked for equality with
+ *   [`Object.is()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is)
+ * - An object containing of subset of properties
+ * - A filtering function taking the `input` as argument and returning a boolean
+ * - A boolean
+ * - An array of the above types, checking if _any_ condition in the array matches
+ */
 export type Condition =
   | string
   | number
