@@ -53,7 +53,11 @@ export interface Switch<
 > {
   case: <NewReturnValue extends ReturnValue<OriginalInput>>(
     conditions: AnyConditions<CustomCondition, OriginalInput>,
-    caseReturnValue: NewReturnValue,
+    ...caseReturnValues: AnyReturnValues<
+      CustomReturnValue,
+      OriginalInput,
+      NewReturnValue
+    >
   ) => Switch<
     FinalReturnValues | ValueOrReturn<NewReturnValue>,
     CustomCondition,
@@ -61,7 +65,11 @@ export interface Switch<
     OriginalInput
   >
   default: <NewReturnValue extends ReturnValue<OriginalInput>>(
-    defaultReturnValue: NewReturnValue,
+    ...defaultReturnValues: AnyReturnValues<
+      CustomReturnValue,
+      OriginalInput,
+      NewReturnValue
+    >
   ) => FinalReturnValues | ValueOrReturn<NewReturnValue>
 }
 
@@ -80,7 +88,11 @@ const addCase =
   ) =>
   <NewReturnValue extends ReturnValue<OriginalInput>>(
     conditions: AnyConditions<CustomCondition, OriginalInput>,
-    ...caseReturnValues: VariadicReturnValues<CustomReturnValue, NewReturnValue>
+    ...caseReturnValues: AnyReturnValues<
+      CustomReturnValue,
+      OriginalInput,
+      NewReturnValue
+    >
   ): Switch<
     FinalReturnValues | ValueOrReturn<NewReturnValue>,
     CustomCondition,
@@ -118,8 +130,9 @@ const useDefault =
     finalValue?: FinalReturnValues,
   ) =>
   <NewReturnValue extends ReturnValue<OriginalInput>>(
-    ...defaultReturnValues: VariadicReturnValues<
+    ...defaultReturnValues: AnyReturnValues<
       CustomReturnValue,
+      OriginalInput,
       NewReturnValue
     >
   ) =>
@@ -210,7 +223,11 @@ const applyReturnValues = <
   OriginalInput extends Input,
 >(
   input: OriginalInput,
-  returnValues: AnyReturnValues<CustomReturnValue, OriginalInput>,
+  returnValues: AnyReturnValues<
+    CustomReturnValue,
+    OriginalInput,
+    ReturnValue<OriginalInput>
+  >,
   {
     mapReturnValues,
   }: Options<CustomCondition, CustomReturnValue, OriginalInput>,
@@ -360,16 +377,12 @@ type ConditionFunction<OriginalInput extends Input> = (
   input: OriginalInput,
 ) => boolean
 
-type VariadicReturnValues<CustomReturnValue, NewReturnValue> =
-  CustomReturnValue[] extends never[]
-    ? readonly [NewReturnValue]
-    : readonly CustomReturnValue[]
-
 type AnyReturnValues<
   CustomReturnValue,
   OriginalInput extends Input,
+  NewReturnValue extends ReturnValue<OriginalInput>,
 > = CustomReturnValue[] extends never[]
-  ? readonly [ReturnValue<OriginalInput>]
+  ? readonly [NewReturnValue]
   : readonly CustomReturnValue[]
 
 type ReturnValue<OriginalInput extends Input> =
