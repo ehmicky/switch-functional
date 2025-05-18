@@ -124,7 +124,7 @@ Functional switch statement. This must be chained with
 
 ## Switch.case(conditions, caseReturnValue)
 
-`conditions`: [`Condition | Condition[]`](#condition)\
+`conditions`: [`Condition | Condition[]`](#conditions)\
 `caseReturnValue`: `unknown | (input) => unknown`\
 _Return value_: [`Switch`](#switchcaseconditions-casereturnvalue)
 
@@ -144,12 +144,12 @@ matched, returns its `caseReturnValue`. Else, returns `defaultReturnValue`.
 `defaultReturnValue` can optionally be a function taking the `input` as
 argument.
 
-## Condition
+## Conditions
 
 The `conditions` can be:
 
-- Any value, checked for equality (using
-  [`Object.is()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is))
+- Any value, checked for equality with
+  [`Object.is()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is)
 - An object containing of subset of properties
 - A filtering function taking the `input` as argument and returning a boolean
 - A boolean
