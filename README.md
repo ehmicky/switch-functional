@@ -16,6 +16,40 @@ Functional switch statement. Strictly typed.
 import switchFunctional from 'switch-functional'
 
 const getUserType = (user) =>
+  switchFunctional(user.type)
+    .case('dev', 'developer')
+    .case(['admin', 'owner'], 'administrator')
+    .default('unknown')
+```
+
+This is equivalent to:
+
+<!-- eslint-disable no-restricted-syntax, no-fallthrough -->
+
+```js
+const getUserType = (user) => {
+  switch (user.type) {
+    case 'dev': {
+      return 'developer'
+    }
+
+    case 'admin':
+
+    case 'owner': {
+      return 'administrator'
+    }
+
+    default: {
+      return 'unknown'
+    }
+  }
+}
+```
+
+## Testing input
+
+```js
+const getUserType = (user) =>
   switchFunctional(user)
     .case(isDeveloper, 'developer')
     .case([isAdmin, isOwner], 'admin')
@@ -50,7 +84,7 @@ const getUserType = (user) =>
     .default('unknown')
 ```
 
-## Dynamic return value
+## Returning dynamic values
 
 <!-- eslint-disable no-shadow -->
 
