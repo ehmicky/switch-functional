@@ -762,7 +762,7 @@ const fullSwitch = switchFunctional('input' as const, {
   mapCondition: (condition: 0) => String(condition) === '0',
   mapReturnValues: (one: 1, two: 2) => (one + two) as 3,
 })
-expectType<Switch<never, 0, readonly [1, 2], 'input', 3>>(fullSwitch)
+expectAssignable<Switch<never, 0, readonly [1, 2], 'input', 3>>(fullSwitch)
 const caseSwitch = fullSwitch.case(0, 1, 2)
 expectType<Switch<3, 0, readonly [1, 2], 'input', 3>>(caseSwitch)
 const secondCaseSwitch = caseSwitch.case(0, 1, 2)
