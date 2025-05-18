@@ -1,20 +1,20 @@
 // Functional `switch` statement
 const chain =
-  <
-    OriginalInput extends Input = never,
-    FinalReturnValues extends FinalReturnValue = never,
-  >(
+  <FinalReturnValues extends FinalReturnValue = never>(
     resolved: Resolved,
+    finalValue?: FinalReturnValues,
   ) =>
-  <NewInput extends Input>(input: NewInput) => ({
+  <OriginalInput extends Input>(input: OriginalInput) => ({
     /**
      * If the `input` matches the `conditions`, the final return value will be
      * `caseReturnValue`.
      *
      * `caseReturnValue` can optionally be a function taking the `input` as argument.
      */
-    case: addCase<GetOriginalInput<OriginalInput, NewInput>, FinalReturnValues>(
-      { resolved, input },
+    case: addCase<OriginalInput, FinalReturnValues>(
+      resolved,
+      input,
+      finalValue,
     ),
 
     /**
@@ -24,16 +24,12 @@ const chain =
      * `defaultReturnValue` can optionally be a function taking the `input` as
      * argument.
      */
-    default: useDefault<
-      GetOriginalInput<OriginalInput, NewInput>,
-      FinalReturnValues
-    >({ resolved, input }),
+    default: useDefault<OriginalInput, FinalReturnValues>(
+      resolved,
+      input,
+      finalValue,
+    ),
   })
-
-type GetOriginalInput<
-  OriginalInput extends Input,
-  NewInput extends Input,
-> = OriginalInput[] extends never[] ? NewInput : OriginalInput
 
 /**
  * Return value of `switchFunctional()` and `switchFunctional().case()`
@@ -45,53 +41,49 @@ export interface Switch<
   case: <NewReturnValue extends ReturnValue<OriginalInput>>(
     conditions: Conditions<OriginalInput>,
     caseReturnValue: NewReturnValue,
-  ) => Switch<FinalReturnValues | GetReturnValue<NewReturnValue>, OriginalInput>
+  ) => Switch<FinalReturnValues | ValueOrReturn<NewReturnValue>, OriginalInput>
   default: <NewReturnValue extends ReturnValue<OriginalInput>>(
     defaultReturnValue: NewReturnValue,
-  ) => FinalReturnValues | GetReturnValue<NewReturnValue>
+  ) => FinalReturnValues | ValueOrReturn<NewReturnValue>
 }
 
 // `switchFunctional(input)[.case(...)].case(conditions, returnValue)`
 const addCase =
-  <OriginalInput extends Input, FinalReturnValues extends FinalReturnValue>({
-    resolved,
-    input,
-  }: Context) =>
+  <OriginalInput extends Input, FinalReturnValues extends FinalReturnValue>(
+    resolved: boolean,
+    input: OriginalInput,
+    finalValue?: FinalReturnValues,
+  ) =>
   <NewReturnValue extends ReturnValue<OriginalInput>>(
     conditions: Conditions<OriginalInput>,
     caseReturnValue: NewReturnValue,
-  ): Switch<
-    FinalReturnValues | GetReturnValue<NewReturnValue>,
-    OriginalInput
-  > =>
-    resolved || !matchesConditions(input as OriginalInput, conditions)
-      ? (chain(resolved)(input as OriginalInput) as Switch<
+  ): Switch<FinalReturnValues | ValueOrReturn<NewReturnValue>, OriginalInput> =>
+    resolved || !matchesConditions(input, conditions)
+      ? (chain(resolved, finalValue)(input) as Switch<
           FinalReturnValues,
           OriginalInput
         >)
-      : (chain(true)(
-          applyReturnValue(input as OriginalInput, caseReturnValue),
-        ) as Switch<
-          FinalReturnValues | GetReturnValue<NewReturnValue>,
+      : (chain(true, applyReturnValue(input, caseReturnValue))(input) as Switch<
+          ValueOrReturn<NewReturnValue>,
           OriginalInput
         >)
 
 // `switchFunctional(input)[.case()...].default(returnValue)`
 const useDefault =
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  <OriginalInput extends Input, FinalReturnValues extends FinalReturnValue>({
-      resolved,
-      input,
-    }: Context) =>
-    <NewReturnValue extends ReturnValue<OriginalInput>>(
-      defaultReturnValue: NewReturnValue,
-    ) =>
-      resolved
-        ? (input as FinalReturnValues)
-        : (applyReturnValue(
-            input as OriginalInput,
-            defaultReturnValue,
-          ) as GetReturnValue<NewReturnValue>)
+  <OriginalInput extends Input, FinalReturnValues extends FinalReturnValue>(
+    resolved: boolean,
+    input: OriginalInput,
+    finalValue?: FinalReturnValues,
+  ) =>
+  <NewReturnValue extends ReturnValue<OriginalInput>>(
+    defaultReturnValue: NewReturnValue,
+  ) =>
+    resolved
+      ? finalValue!
+      : (applyReturnValue(
+          input,
+          defaultReturnValue,
+        ) as ValueOrReturn<NewReturnValue>)
 
 const matchesConditions = <OriginalInput extends Input>(
   input: OriginalInput,
@@ -238,11 +230,6 @@ type Resolved = boolean
 
 type Input = unknown
 
-interface Context {
-  readonly resolved: Resolved
-  readonly input: Input
-}
-
 type Conditions<PassedInput extends Input = Input> =
   | Condition<PassedInput>
   | readonly Condition<PassedInput>[]
@@ -291,7 +278,7 @@ type ReturnValueFunction<OriginalInput extends Input> = (
   input: OriginalInput,
 ) => unknown
 
-type GetReturnValue<NewReturnValue> = NewReturnValue extends (
+type ValueOrReturn<NewReturnValue> = NewReturnValue extends (
   ...args: never[]
 ) => unknown
   ? ReturnType<NewReturnValue>

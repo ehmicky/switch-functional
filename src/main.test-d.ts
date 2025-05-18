@@ -11,7 +11,7 @@ expectAssignable<Switch>(switchStatement)
 // @ts-expect-error
 switchFunctional()
 // @ts-expect-error
-switchFunctional(true, {})
+switchFunctional(true, null)
 
 switchFunctional(0)
 switchFunctional(0n)
@@ -199,3 +199,8 @@ expectType<Switch<0 | 1 | 2, true>>(
 
 expectAssignable<Switch<1 | 2, true>>(switchStatement.case(true, 1 as const))
 expectAssignable<Switch<0 | 1 | 2, true>>(caseStatement.case(true, 1 as const))
+
+expectType<undefined>(switchStatement.default(undefined))
+expectType<undefined>(switchStatement.default(() => undefined))
+expectType<0 | undefined>(caseStatement.default(undefined))
+expectType<0 | undefined>(caseStatement.default(() => undefined))
