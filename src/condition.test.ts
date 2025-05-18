@@ -98,3 +98,55 @@ each(
     })
   },
 )
+
+test('options.mapCondition() can use booleans', (t) => {
+  t.is(
+    switchFunctional(0, {
+      mapCondition: (condition: number) => condition === 2,
+    })
+      .case(1, '1')
+      .case(2, '2')
+      .default('3'),
+    '2',
+  )
+})
+
+test('options.mapCondition() can return a function', (t) => {
+  t.is(
+    switchFunctional(0, {
+      mapCondition: (condition: number) => (value: number) =>
+        condition === value + 2,
+    })
+      .case(1, '1')
+      .case(2, '2')
+      .default('3'),
+    '2',
+  )
+})
+
+test('options.mapCondition() works with arrays', (t) => {
+  t.is(
+    switchFunctional(0, {
+      mapCondition: (condition: number) => condition === 2,
+    })
+      .case([0, 1], '1')
+      .case([2, 3], '2')
+      .default('3'),
+    '2',
+  )
+})
+
+test('options.mapCondition() can use deep equality', (t) => {
+  t.is(
+    switchFunctional(
+      { prop: 0 },
+      {
+        mapCondition: (condition: number) => ({ prop: condition }),
+      },
+    )
+      .case(1, '1')
+      .case(0, '2')
+      .default('3'),
+    '2',
+  )
+})
