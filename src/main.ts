@@ -1,99 +1,104 @@
 // Functional `switch` statement
 const chain =
-  <AddedEffects extends Effect>(resolved: Resolved) =>
-  (value: Value) => ({
+  <ReturnValues extends ReturnValue>(resolved: Resolved) =>
+  (input: Input) => ({
     /**
      *
      */
-    case: addCase<AddedEffects>({ resolved, value }),
+    case: addCase<ReturnValues>({ resolved, input }),
 
     /**
      *
      */
-    default: useDefault<AddedEffects>({ resolved, value }),
+    default: useDefault<ReturnValues>({ resolved, input }),
   })
 
 /**
  * Return value of `switchFunctional()` and `switchFunctional().case()`
  */
-export interface Switch<AddedEffects extends Effect = never> {
-  case: <NewEffect extends Effect>(
+export interface Switch<ReturnValues extends ReturnValue = never> {
+  case: <NewReturnValue extends ReturnValue>(
     conditions: Conditions,
-    effect: NewEffect,
-  ) => Switch<AddedEffects | GetNewEffect<NewEffect>>
-  default: <NewEffect extends Effect>(
-    effect: NewEffect,
-  ) => AddedEffects | GetNewEffect<NewEffect>
+    returnValue: NewReturnValue,
+  ) => Switch<ReturnValues | GetReturnValue<NewReturnValue>>
+  default: <NewReturnValue extends ReturnValue>(
+    returnValue: NewReturnValue,
+  ) => ReturnValues | GetReturnValue<NewReturnValue>
 }
 
-// `switchFunctional(value)[.case(...)].case(conditions, effect)`
+// `switchFunctional(input)[.case(...)].case(conditions, returnValue)`
 const addCase =
-  <AddedEffects extends Effect>({ resolved, value }: Context) =>
-  <NewEffect extends Effect>(
+  <ReturnValues extends ReturnValue>({ resolved, input }: Context) =>
+  <NewReturnValue extends ReturnValue>(
     conditions: Conditions,
-    effect: NewEffect,
-  ): Switch<AddedEffects | GetNewEffect<NewEffect>> =>
-    resolved || !matchesConditions(value, conditions)
-      ? chain<AddedEffects>(resolved)(value)
-      : chain<AddedEffects | GetNewEffect<NewEffect>>(true)(
-          applyEffect(value, effect),
+    returnValue: NewReturnValue,
+  ): Switch<ReturnValues | GetReturnValue<NewReturnValue>> =>
+    resolved || !matchesConditions(input, conditions)
+      ? chain<ReturnValues>(resolved)(input)
+      : chain<ReturnValues | GetReturnValue<NewReturnValue>>(true)(
+          applyReturnValue(input, returnValue),
         )
 
-// `switchFunctional(value)[.case()...].default(effect)`
+// `switchFunctional(input)[.case()...].default(returnValue)`
 const useDefault =
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  <AddedEffects extends Effect>({ resolved, value }: Context) =>
-    <NewEffect extends Effect>(effect: NewEffect) =>
+  <ReturnValues extends ReturnValue>({ resolved, input }: Context) =>
+    <NewReturnValue extends ReturnValue>(returnValue: NewReturnValue) =>
       resolved
-        ? (value as AddedEffects)
-        : (applyEffect(value, effect as unknown) as GetNewEffect<NewEffect>)
+        ? (input as ReturnValues)
+        : (applyReturnValue(
+            input,
+            returnValue as unknown,
+          ) as GetReturnValue<NewReturnValue>)
 
-const matchesConditions = (value: Value, conditions: Conditions) =>
+const matchesConditions = (input: Input, conditions: Conditions) =>
   Array.isArray(conditions)
     ? (conditions as Condition[]).some((condition) =>
-        matchesCondition(value, condition),
+        matchesCondition(input, condition),
       )
-    : matchesCondition(value, conditions)
+    : matchesCondition(input, conditions)
 
-const matchesCondition = (value: Value, condition: Condition) => {
+const matchesCondition = (input: Input, condition: Condition) => {
   if (typeof condition === 'function') {
-    return condition(value)
+    return condition(input)
   }
 
   if (typeof condition === 'boolean') {
     return condition
   }
 
-  return deepIncludes(value, condition)
+  return deepIncludes(input, condition)
 }
 
 // Check for deep equality. For objects (not arrays), check if deep superset.
-const deepIncludes = (value: Value, subset: unknown): boolean => {
+const deepIncludes = (input: Input, subset: unknown): boolean => {
   if (
-    !isObject(value) ||
+    !isObject(input) ||
     !isObject(subset) ||
-    Array.isArray(value) !== Array.isArray(subset)
+    Array.isArray(input) !== Array.isArray(subset)
   ) {
-    return Object.is(value, subset)
+    return Object.is(input, subset)
   }
 
-  if (Array.isArray(value) && Array.isArray(subset)) {
+  if (Array.isArray(input) && Array.isArray(subset)) {
     return (
-      subset.length === value.length &&
-      subset.every((item, index) => deepIncludes(value[index], item))
+      subset.length === input.length &&
+      subset.every((item, index) => deepIncludes(input[index], item))
     )
   }
 
   return Object.entries(subset).every(([name, child]) =>
-    deepIncludes(value[name], child),
+    deepIncludes(input[name], child),
   )
 }
 
-const isObject = (value: Value): value is { [name: PropertyKey]: unknown } =>
-  typeof value === 'object' && value !== null
+const isObject = (input: Input): input is { [name: PropertyKey]: unknown } =>
+  typeof input === 'object' && input !== null
 
-const applyEffect = (value: Value, effect: Effect): unknown =>
-  typeof effect === 'function' ? (effect as EffectFunction)(value) : effect
+const applyReturnValue = (input: Input, ReturnValue: ReturnValue): unknown =>
+  typeof ReturnValue === 'function'
+    ? (ReturnValue as ReturnValueFunction)(input)
+    : ReturnValue
 
 /**
  *
@@ -107,11 +112,11 @@ export default switchFunctional
 
 type Resolved = boolean
 
-type Value = unknown
+type Input = unknown
 
 interface Context {
   readonly resolved: Resolved
-  readonly value: Value
+  readonly input: Input
 }
 
 type Conditions = Condition | readonly Condition[]
@@ -126,12 +131,13 @@ export type Condition =
   | undefined
   | readonly unknown[]
   | { readonly [key: PropertyKey]: unknown }
-  | ((value: unknown) => boolean)
+  | ((input: unknown) => boolean)
 
-type Effect = unknown
+type ReturnValue = unknown
 
-type GetNewEffect<NewEffect extends Effect> = NewEffect extends EffectFunction
-  ? ReturnType<NewEffect>
-  : NewEffect
+type GetReturnValue<NewReturnValue extends ReturnValue> =
+  NewReturnValue extends ReturnValueFunction
+    ? ReturnType<NewReturnValue>
+    : NewReturnValue
 
-type EffectFunction = (value: unknown) => unknown
+type ReturnValueFunction = (input: unknown) => unknown
