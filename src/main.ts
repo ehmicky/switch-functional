@@ -32,7 +32,7 @@ const chain =
       OriginalInput,
       StrictReturnValue,
       FinalReturnValues
-    >(options, resolved, input, finalValue),
+    >({ options, resolved, input, finalValue }),
 
     /**
      * If one of the `.case()` statements matched, returns its
@@ -47,7 +47,7 @@ const chain =
       OriginalInput,
       StrictReturnValue,
       FinalReturnValues
-    >(options, resolved, input, finalValue),
+    >({ options, resolved, input, finalValue }),
   })
 
 /**
@@ -86,55 +86,61 @@ export interface Switch<
 
 // `switchFunctional(input)[.case(...)].case(conditions, returnValue)`
 const addCase =
+  // eslint-disable-next-line max-lines-per-function
   <
-    CustomCondition,
-    CustomReturnValues extends readonly unknown[],
-    OriginalInput extends Input,
-    StrictReturnValue extends ReturnValue<OriginalInput>,
-    FinalReturnValues extends FinalReturnValue,
-  >(
-    options: Options<
+      CustomCondition,
+      CustomReturnValues extends readonly unknown[],
+      OriginalInput extends Input,
+      StrictReturnValue extends ReturnValue<OriginalInput>,
+      FinalReturnValues extends FinalReturnValue,
+    >({
+      options,
+      resolved,
+      input,
+      finalValue,
+    }: {
+      options: Options<
+        CustomCondition,
+        CustomReturnValues,
+        OriginalInput,
+        StrictReturnValue
+      >
+      resolved: boolean
+      input: OriginalInput
+      finalValue?: FinalReturnValues | undefined
+    }) =>
+    <NewReturnValue extends ReturnValue<OriginalInput> = never>(
+      conditions: AnyConditions<CustomCondition, OriginalInput>,
+      ...caseReturnValues: AnyReturnValues<
+        CustomReturnValues,
+        OriginalInput,
+        NewReturnValue
+      >
+    ): Switch<
+      FinalReturnValues | GetFinalValue<NewReturnValue, StrictReturnValue>,
       CustomCondition,
       CustomReturnValues,
       OriginalInput,
       StrictReturnValue
-    >,
-    resolved: boolean,
-    input: OriginalInput,
-    finalValue?: FinalReturnValues,
-  ) =>
-  <NewReturnValue extends ReturnValue<OriginalInput> = never>(
-    conditions: AnyConditions<CustomCondition, OriginalInput>,
-    ...caseReturnValues: AnyReturnValues<
-      CustomReturnValues,
-      OriginalInput,
-      NewReturnValue
-    >
-  ): Switch<
-    FinalReturnValues | GetFinalValue<NewReturnValue, StrictReturnValue>,
-    CustomCondition,
-    CustomReturnValues,
-    OriginalInput,
-    StrictReturnValue
-  > =>
-    resolved || !matchesConditions(input, conditions, options)
-      ? (chain(resolved, finalValue)(input, options) as Switch<
-          FinalReturnValues,
-          CustomCondition,
-          CustomReturnValues,
-          OriginalInput,
-          StrictReturnValue
-        >)
-      : (chain(true, applyReturnValues(input, caseReturnValues, options))(
-          input,
-          options,
-        ) as Switch<
-          GetFinalValue<NewReturnValue, StrictReturnValue>,
-          CustomCondition,
-          CustomReturnValues,
-          OriginalInput,
-          StrictReturnValue
-        >)
+    > =>
+      resolved || !matchesConditions(input, conditions, options)
+        ? (chain(resolved, finalValue)(input, options) as Switch<
+            FinalReturnValues,
+            CustomCondition,
+            CustomReturnValues,
+            OriginalInput,
+            StrictReturnValue
+          >)
+        : (chain(true, applyReturnValues(input, caseReturnValues, options))(
+            input,
+            options,
+          ) as Switch<
+            GetFinalValue<NewReturnValue, StrictReturnValue>,
+            CustomCondition,
+            CustomReturnValues,
+            OriginalInput,
+            StrictReturnValue
+          >)
 
 // `switchFunctional(input)[.case()...].default(returnValue)`
 const useDefault =
@@ -144,17 +150,22 @@ const useDefault =
     OriginalInput extends Input,
     StrictReturnValue extends ReturnValue<OriginalInput>,
     FinalReturnValues extends FinalReturnValue,
-  >(
+  >({
+    options,
+    resolved,
+    input,
+    finalValue,
+  }: {
     options: Options<
       CustomCondition,
       CustomReturnValues,
       OriginalInput,
       StrictReturnValue
-    >,
-    resolved: boolean,
-    input: OriginalInput,
-    finalValue?: FinalReturnValues,
-  ) =>
+    >
+    resolved: boolean
+    input: OriginalInput
+    finalValue?: FinalReturnValues | undefined
+  }) =>
   <NewReturnValue extends ReturnValue<OriginalInput> = never>(
     ...defaultReturnValues: AnyReturnValues<
       CustomReturnValues,
