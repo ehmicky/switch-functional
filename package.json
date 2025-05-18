@@ -17,7 +17,7 @@
   "scripts": {
     "test": "gulp test"
   },
-  "description": "Functional switch statement.",
+  "description": "Functional switch statement",
   "keywords": [
     "case",
     "default",
