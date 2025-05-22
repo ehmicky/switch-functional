@@ -5,12 +5,12 @@
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const templateName = (value: unknown, options?: Options): unknown => value
+const switchFunctional = (value: unknown, options?: Options): unknown => value
 
-export default templateName
+export default switchFunctional
 
 /**
- * `template-name` options
+ * `switch-functional` options
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
 export interface Options {}

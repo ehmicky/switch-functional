@@ -1,8 +1,8 @@
 import { expectAssignable, expectType } from 'tsd'
 
-import templateName, { type Options } from 'template-name'
+import switchFunctional, { type Options } from 'switch-functional'
 
-expectType<unknown>(templateName(true))
+expectType<unknown>(switchFunctional(true))
 
-templateName(true, {})
+switchFunctional(true, {})
 expectAssignable<Options>({})
